@@ -94,4 +94,11 @@ SUITE(NatTests)
         CHECK_EQUAL(expetedIp,resultIp);
     }
 
+    TEST(TestHandlePDU)
+    {
+      Tins::EthernetII eth = Tins::EthernetII() / Tins::IP() / Tins::TCP();
+      otonat::NatMap natMap = otonat::NatMap();
+      natMap.handlePdu(&eth);
+    }
+
 }

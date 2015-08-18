@@ -39,6 +39,7 @@ bool arpm2(const PDU &pdu)
 {
     // Retrieve the ARP layer
     const ARP &arp = pdu.rfind_pdu<ARP>();
+
     std::cout << arp.opcode()<< std::endl;
     if (arp.opcode() == ARP::REPLY)
     {
