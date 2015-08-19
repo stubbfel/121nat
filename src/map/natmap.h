@@ -26,21 +26,20 @@ public:
     NetworkInterfaceList interfaces;
     IpAdressMacMap arpMap;
     IpAdressMap transMap;
-    PduQueue pduQueue;
+    PduQueue incommingPduQueue;
+    PduQueue outgoingPduQueue;
     void handlePdu(const Tins::PDU * pdu);
-
     static const Tins::IPv4Address mapIPv4Address(const Tins::IPv4Address & ip, const Tins::NetworkInterface::Info & interfaceInfo);
-
     static const Tins::IPv4Range calcIpRange(const Tins::NetworkInterface::Info & interfaceInfo);
 
 protected:
 
 private:
-    void handleIp(const Tins::IP * ip);
-    void handleArp(const Tins::ARP * arp);
+    void handleIp(Tins::IP * ip);
+    void handleArp(Tins::ARP * arp);
     Tins::IPv4Address InsertOrUdpateTranslateIpAddress(const Tins::IPv4Address  & originIp, const Tins::NetworkInterface::Info & interfaceInfo);
     Tins::IPv4Address InsertOrUdpateTranslateIpAddress(const Tins::IPv4Address  & originIp, NetworkInterfaceList & interfaceList);
-    void TranslateIpPacket(const Tins::IP * ip, const Tins::IPv4Address & transIp);
+    void TranslateIpPacket(Tins::IP * ip, const Tins::IPv4Address & transIp);
     Tins::IPv4Address zeroIp;
 };
 }

@@ -6,7 +6,7 @@
  */
 
 #include "nattest.h"
-
+#include <iostream>
 
 CPPUNIT_TEST_SUITE_REGISTRATION(nattest);
 
@@ -65,9 +65,23 @@ void nattest::testIpCalcEth2() {
 }
 
 void nattest::testTranslateIp() {
-    Tins::EthernetII eth = Tins::EthernetII() / Tins::IP() / Tins::TCP();
-    otonat::NatMap natMap = otonat::NatMap();
+    Tins::EthernetII eth = Tins::EthernetII("00:00:00:00:00:01" ,"00:00:00:00:00:02") / Tins::IP("172.27.0.20", "172.16.3.55") / Tins::TCP();
+    Tins::EthernetII eth2 = Tins::EthernetII("00:00:00:00:00:01" ,"00:00:00:00:00:03") / Tins::IP("172.27.0.20", "172.17.3.55") / Tins::TCP();
+    Tins::NetworkInterface net1("lo:0");
+    Tins::NetworkInterface net2("lo:1");
+    otonat::NatMap::NetworkInterfaceList list;
+    list.push_back(net1);
+    list.push_back(net2);
+    otonat::NatMap natMap = otonat::NatMap(list);
     natMap.handlePdu(&eth);
+    CPPUNIT_ASSERT(natMap.outgoingPduQueue.empty());
+    natMap.transMap.insert(otonat::NatMap::IPv4AddressEntry(Tins::IPv4Address("172.27.0.20"), Tins::IPv4Address("10.0.0.20")));
+    natMap.handlePdu(&eth);
+    CPPUNIT_ASSERT(natMap.outgoingPduQueue.size()== 1);
+    const Tins::PDU * result = natMap.outgoingPduQueue.front(); 
+    std::cout << "outgoingip: " << result->rfind_pdu<Tins::IP>().src_addr() << std::endl;
+    natMap.outgoingPduQueue.pop();
+    CPPUNIT_ASSERT(natMap.outgoingPduQueue.empty());
 }
 
 void nattest::testNatInterfaces() {
