@@ -35,12 +35,13 @@ public:
 protected:
 
 private:
-    void handleIp(Tins::IP * ip);
-    void handleArp(Tins::ARP * arp);
+    bool handleIp(Tins::IP * ip);
+    bool handleArp(Tins::ARP * arp);
     Tins::IPv4Address InsertOrUdpateTranslateIpAddress(const Tins::IPv4Address  & originIp, const Tins::NetworkInterface::Info & interfaceInfo);
-    Tins::IPv4Address InsertOrUdpateTranslateIpAddress(const Tins::IPv4Address  & originIp, NetworkInterfaceList & interfaceList);
+    Tins::IPv4Address InsertOrUdpateTranslateIpAddress(const Tins::IPv4Address  & originIp, const Tins::IPv4Address & transIp, NetworkInterfaceList & interfaceList);
     void TranslateIpPacket(Tins::IP * ip, const Tins::IPv4Address & transIp);
     Tins::IPv4Address zeroIp;
+    bool isForMeOrFromMeIp(const Tins::IP * ip);
 };
 }
 

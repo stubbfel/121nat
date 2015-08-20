@@ -15,13 +15,12 @@
 
 class nattest : public CPPUNIT_NS::TestFixture {
     CPPUNIT_TEST_SUITE(nattest);
-
+    CPPUNIT_TEST(testTranslateIp);
     CPPUNIT_TEST(testNatInterfaces);
     CPPUNIT_TEST(testIpCalcEth0);
     CPPUNIT_TEST(testIpCalcEth1);
     CPPUNIT_TEST(testIpCalcEth2);
-    CPPUNIT_TEST(testTranslateIp);
-
+    CPPUNIT_TEST(testForMeFromMe);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -31,7 +30,7 @@ public:
     void tearDown();
 
 private:
-    otonat::NatMap natMap = otonat::NatMap();
+    otonat::NatMap natMap;
     Tins::IPv4Address deviceIpEth0 = Tins::IPv4Address("10.0.3.40");
     Tins::IPv4Address deviceIpEth1 = Tins::IPv4Address("192.168.23.42");
     Tins::IPv4Address deviceIpEth2 = Tins::IPv4Address("172.27.123.4");
@@ -64,6 +63,14 @@ private:
     void testIpCalcEth1();
     void testIpCalcEth2();
     void testTranslateIp();
+    void testForMeFromMe();
+
+    void printIp(const Tins::IP & ip);
+    void printEth(const Tins::EthernetII & eth);
+    void checkAndPrintIp(const Tins::IP & ip, const Tins::IPv4Address & targetSrcIp, const Tins::IPv4Address & targetDstIp);
+    void checkAndPrintEth(const Tins::EthernetII & eth, const Tins::HWAddress<6> & targetDstMac, const Tins::HWAddress<6> & targetSrcMac, const Tins::IPv4Address & targetDstIp, const Tins::IPv4Address & targetSrcIp);
+    void checkIp(const Tins::IP & ip, const Tins::IPv4Address & targetSrcIp, const Tins::IPv4Address & targetDstIp);
+    void checkEth(const Tins::EthernetII & eth, const Tins::HWAddress<6> & targetDstMac, const Tins::HWAddress<6> & targetSrcMac, const Tins::IPv4Address & targetDstIp, const Tins::IPv4Address & targetSrcIp);
 };
 
 #endif	/* NATTEST_H */

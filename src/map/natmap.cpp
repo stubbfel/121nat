@@ -13,8 +13,7 @@ namespace otonat {
         //dtor
     }
 
-    NatMap::NatMap(const NatMap& other) : interfaces(other.interfaces) {
-        operator=(other);
+    NatMap::NatMap(const NatMap& other) : interfaces(other.interfaces), arpMap(other.arpMap), transMap(other.transMap), incommingPduQueue(other.incommingPduQueue), outgoingPduQueue(other.outgoingPduQueue), zeroIp(other.zeroIp) {
     }
 
     NatMap& NatMap::operator=(const NatMap& rhs) {
@@ -48,32 +47,49 @@ namespace otonat {
 
         Tins::ARP * arp = pduCopy->find_pdu<Tins::ARP>();
         if (arp != 0) {
-            handleArp(arp);
+            if (handleArp(arp)) {
+                outgoingPduQueue.push(pduCopy);
+            }
             return;
         }
 
         Tins::IP * ip = pduCopy->find_pdu<Tins::IP>();
         if (ip != 0) {
-            handleIp(ip);
+            if (handleIp(ip)) {
+                outgoingPduQueue.push(pduCopy);
+            }
         }
     }
 
-    void NatMap::handleIp(Tins::IP * ip) {
-        IpAdressMap::iterator transIpIter = transMap.find(ip->dst_addr());
+    bool NatMap::handleIp(Tins::IP * ip) {
+
+        if (isForMeOrFromMeIp(ip)) {
+            return false;
+        }
+
+        const Tins::IPv4Address originDstIp = ip->dst_addr();
+        IpAdressMap::iterator transIpIter = transMap.find(originDstIp);
         if (transIpIter != transMap.end()) {
             // handle know traslation ip
-            TranslateIpPacket(ip, transIpIter->second);
+            const Tins::IPv4Address transDstIp = transIpIter->second;
+            TranslateIpPacket(ip, transDstIp);
+            IpAdressMap::iterator transDstIpIter = transMap.find(transDstIp);
+            if (transDstIpIter == transMap.end()) {
+                transMap.insert(IPv4AddressEntry(transDstIp, originDstIp));
+            } else if (transDstIpIter->second != originDstIp) {
+                transMap[transDstIp] = originDstIp;
+            }
+            
+            return true;
         } else {
-            // Determine Traslation Ip
+            return false;
         }
     }
 
     void NatMap::TranslateIpPacket(Tins::IP * ip, const Tins::IPv4Address & transIp) {
-        // copy ip packet, for modifaktion
-        Tins::IP * modifyIp = ip->clone();
 
         // set translated dst address
-        modifyIp->dst_addr(transIp);
+        ip->dst_addr(transIp);
 
         // translate src adress
         const Tins::IPv4Address & originSrc = ip->src_addr();
@@ -83,14 +99,13 @@ namespace otonat {
             // set translated src address
             transSrcAttr = transIpIter->second;
         } else {
-            transSrcAttr = InsertOrUdpateTranslateIpAddress(originSrc, interfaces);
+            transSrcAttr = InsertOrUdpateTranslateIpAddress(originSrc, transIp, interfaces);
         }
 
-        modifyIp->src_addr(transSrcAttr);
-        outgoingPduQueue.push(modifyIp);
+        ip->src_addr(transSrcAttr);
     }
 
-    Tins::IPv4Address NatMap::InsertOrUdpateTranslateIpAddress(const Tins::IPv4Address & originIp, NetworkInterfaceList & interfaceList) {
+    Tins::IPv4Address NatMap::InsertOrUdpateTranslateIpAddress(const Tins::IPv4Address & originIp, const Tins::IPv4Address & transIp, NetworkInterfaceList & interfaceList) {
         // calc translated ip address for first up and not same interfaces
         for (const Tins::NetworkInterface & interface : interfaceList) {
             // insert or update translated ip address
@@ -100,7 +115,7 @@ namespace otonat {
             }
 
             Tins::IPv4Range range = calcIpRange(interfaceInfo); //networkInterfaceIpRangeMap[interfaceInfo.ip_addr];
-            if (range.contains(originIp)) {
+            if (!range.contains(transIp)) {
                 continue;
             }
 
@@ -128,7 +143,19 @@ namespace otonat {
         return transAddr;
     }
 
-    void NatMap::handleArp(Tins::ARP * /*arp*/) {
-        return;
+    bool NatMap::handleArp(Tins::ARP * /*arp*/) {
+        return false;
+    }
+
+    bool NatMap::isForMeOrFromMeIp(const Tins::IP * ip) {
+        const Tins::IPv4Address & srcAddr = ip->src_addr();
+        const Tins::IPv4Address & dstAddr = ip->dst_addr();
+        for (Tins::NetworkInterface interface : interfaces) {
+            const Tins::IPv4Address & interfaceAddr = interface.info().ip_addr;
+            if (srcAddr == interfaceAddr || dstAddr == interfaceAddr) {
+                return true;
+            }
+        }
+        return false;
     }
 }
