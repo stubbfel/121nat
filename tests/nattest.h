@@ -67,9 +67,9 @@ private:
 
     void printIp(const Tins::IP & ip);
     void printEth(const Tins::EthernetII & eth);
-    void checkAndPrintIp(const Tins::IP & ip, const Tins::IPv4Address & targetSrcIp, const Tins::IPv4Address & targetDstIp);
+    void checkAndPrintIp(const Tins::IP & ip, const Tins::IPv4Address & targetDstIp, const Tins::IPv4Address & targetSrcIp);
     void checkAndPrintEth(const Tins::EthernetII & eth, const Tins::HWAddress<6> & targetDstMac, const Tins::HWAddress<6> & targetSrcMac, const Tins::IPv4Address & targetDstIp, const Tins::IPv4Address & targetSrcIp);
-    void checkIp(const Tins::IP & ip, const Tins::IPv4Address & targetSrcIp, const Tins::IPv4Address & targetDstIp);
+    void checkIp(const Tins::IP & ip, const Tins::IPv4Address & targetDstIp, const Tins::IPv4Address & targetSrcIp);
     void checkEth(const Tins::EthernetII & eth, const Tins::HWAddress<6> & targetDstMac, const Tins::HWAddress<6> & targetSrcMac, const Tins::IPv4Address & targetDstIp, const Tins::IPv4Address & targetSrcIp);
 };
 

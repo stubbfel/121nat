@@ -36,6 +36,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/src/main.o \
+	${OBJECTDIR}/src/map/NatRange.o \
 	${OBJECTDIR}/src/map/natmap.o
 
 # Test Directory
@@ -73,6 +74,11 @@ ${OBJECTDIR}/src/main.o: src/main.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Itest -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/main.o src/main.cpp
+
+${OBJECTDIR}/src/map/NatRange.o: src/map/NatRange.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src/map
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Itest -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/map/NatRange.o src/map/NatRange.cpp
 
 ${OBJECTDIR}/src/map/natmap.o: src/map/natmap.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src/map
@@ -112,6 +118,19 @@ ${OBJECTDIR}/src/main_nomain.o: ${OBJECTDIR}/src/main.o src/main.cpp
 	    $(COMPILE.cc) -g -Itest -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/main_nomain.o src/main.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/main.o ${OBJECTDIR}/src/main_nomain.o;\
+	fi
+
+${OBJECTDIR}/src/map/NatRange_nomain.o: ${OBJECTDIR}/src/map/NatRange.o src/map/NatRange.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src/map
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/map/NatRange.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} "$@.d";\
+	    $(COMPILE.cc) -g -Itest -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/map/NatRange_nomain.o src/map/NatRange.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/src/map/NatRange.o ${OBJECTDIR}/src/map/NatRange_nomain.o;\
 	fi
 
 ${OBJECTDIR}/src/map/natmap_nomain.o: ${OBJECTDIR}/src/map/natmap.o src/map/natmap.cpp 

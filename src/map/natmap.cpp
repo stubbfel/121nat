@@ -2,41 +2,25 @@
 
 namespace otonat {
 
-    NatMap::NatMap() : NatMap(Tins::NetworkInterface::all()) {
-        //ctor
-    }
-
-    NatMap::NatMap(NetworkInterfaceList interfaceList) : interfaces(interfaceList) {
+    NatMap::NatMap(NatRangeList rangeList) : ranges(rangeList) {
     }
 
     NatMap::~NatMap() {
         //dtor
     }
 
-    NatMap::NatMap(const NatMap& other) : interfaces(other.interfaces), arpMap(other.arpMap), transMap(other.transMap), incommingPduQueue(other.incommingPduQueue), outgoingPduQueue(other.outgoingPduQueue), zeroIp(other.zeroIp) {
+    NatMap::NatMap(const NatMap& other) : ranges(other.ranges), arpMap(other.arpMap), transMap(other.transMap), incommingPduQueue(other.incommingPduQueue), outgoingPduQueue(other.outgoingPduQueue), zeroIp(other.zeroIp) {
     }
 
     NatMap& NatMap::operator=(const NatMap& rhs) {
         if (this == &rhs) return *this; // handle self assignment
 
-        interfaces = rhs.interfaces;
+        ranges = rhs.ranges;
         arpMap = rhs.arpMap;
         transMap = rhs.transMap;
         incommingPduQueue = rhs.incommingPduQueue;
         outgoingPduQueue = rhs.outgoingPduQueue;
         return *this;
-    }
-
-    const Tins::IPv4Address NatMap::mapIPv4Address(const Tins::IPv4Address & ip, const Tins::NetworkInterface::Info & interfaceInfo) {
-        const uint32_t & netmask = interfaceInfo.netmask;
-        const uint32_t & interfaceIp = interfaceInfo.ip_addr;
-        const uint32_t networkStartIp = interfaceIp & netmask;
-        const uint32_t resultIp = (ip & ~netmask) | networkStartIp;
-        return Tins::IPv4Address(resultIp);
-    }
-
-    const Tins::IPv4Range NatMap::calcIpRange(const Tins::NetworkInterface::Info & interfaceInfo) {
-        return Tins::IPv4Range::from_mask(interfaceInfo.ip_addr, interfaceInfo.netmask);
     }
 
     void NatMap::handlePdu(const Tins::PDU * pdu) {
@@ -67,7 +51,11 @@ namespace otonat {
             return false;
         }
 
-        const Tins::IPv4Address originDstIp = ip->dst_addr();
+        const Tins::IPv4Address & originDstIp = ip->dst_addr();
+        if (!isIpInMyRanges(originDstIp)) {
+            return false;
+        }
+
         IpAdressMap::iterator transIpIter = transMap.find(originDstIp);
         if (transIpIter != transMap.end()) {
             // handle know traslation ip
@@ -79,7 +67,7 @@ namespace otonat {
             } else if (transDstIpIter->second != originDstIp) {
                 transMap[transDstIp] = originDstIp;
             }
-            
+
             return true;
         } else {
             return false;
@@ -93,41 +81,42 @@ namespace otonat {
 
         // translate src adress
         const Tins::IPv4Address & originSrc = ip->src_addr();
+
         IpAdressMap::const_iterator transIpIter = transMap.find(originSrc);
         Tins::IPv4Address transSrcAttr;
         if (transIpIter != transMap.end()) {
             // set translated src address
             transSrcAttr = transIpIter->second;
         } else {
-            transSrcAttr = InsertOrUdpateTranslateIpAddress(originSrc, transIp, interfaces);
+            transSrcAttr = InsertOrUdpateTranslateIpAddress(originSrc, transIp, ranges);
         }
 
         ip->src_addr(transSrcAttr);
     }
 
-    Tins::IPv4Address NatMap::InsertOrUdpateTranslateIpAddress(const Tins::IPv4Address & originIp, const Tins::IPv4Address & transIp, NetworkInterfaceList & interfaceList) {
+    Tins::IPv4Address NatMap::InsertOrUdpateTranslateIpAddress(const Tins::IPv4Address & originIp, const Tins::IPv4Address & transIp, NatRangeList & rangeList) {
         // calc translated ip address for first up and not same interfaces
-        for (const Tins::NetworkInterface & interface : interfaceList) {
+        for (NatRange & range : rangeList) {
             // insert or update translated ip address
-            const Tins::NetworkInterface::Info & interfaceInfo = interface.info();
+            const Tins::NetworkInterface::Info & interfaceInfo = range.interface.info();
             if (!interfaceInfo.is_up) {
                 continue;
             }
 
-            Tins::IPv4Range range = calcIpRange(interfaceInfo); //networkInterfaceIpRangeMap[interfaceInfo.ip_addr];
-            if (!range.contains(transIp)) {
+            Tins::IPv4Range ipRange = range.calcIpRange(true);
+            if (!ipRange.contains(transIp)) {
                 continue;
             }
 
-            return InsertOrUdpateTranslateIpAddress(originIp, interfaceInfo);
+            return InsertOrUdpateTranslateIpAddress(originIp, range);
         }
 
         return zeroIp;
     }
 
-    Tins::IPv4Address NatMap::InsertOrUdpateTranslateIpAddress(const Tins::IPv4Address & originIp, const Tins::NetworkInterface::Info & interfaceInfo) {
+    Tins::IPv4Address NatMap::InsertOrUdpateTranslateIpAddress(const Tins::IPv4Address & originIp, const NatRange & range) {
         // translated ip address
-        Tins::IPv4Address transAddr = mapIPv4Address(originIp, interfaceInfo);
+        Tins::IPv4Address transAddr = range.mapIPv4Addres(originIp, false);
 
         // insert forward translation
         transMap.insert(IPv4AddressEntry(originIp, transAddr));
@@ -147,15 +136,33 @@ namespace otonat {
         return false;
     }
 
-    bool NatMap::isForMeOrFromMeIp(const Tins::IP * ip) {
+    bool NatMap::isForMeOrFromMeIp(const Tins::IP* ip) {
+        return isForMeOrFromMeIp(ip, ranges);
+    }
+
+    bool NatMap::isForMeOrFromMeIp(const Tins::IP * ip, const NatRangeList & rangeList) {
         const Tins::IPv4Address & srcAddr = ip->src_addr();
         const Tins::IPv4Address & dstAddr = ip->dst_addr();
-        for (Tins::NetworkInterface interface : interfaces) {
-            const Tins::IPv4Address & interfaceAddr = interface.info().ip_addr;
+        for (NatRange range : rangeList) {
+            const Tins::IPv4Address & interfaceAddr = range.interface.info().ip_addr;
             if (srcAddr == interfaceAddr || dstAddr == interfaceAddr) {
                 return true;
             }
         }
+        return false;
+    }
+
+    bool NatMap::isIpInMyRanges(const Tins::IPv4Address & ipAddr) {
+        return isIpInMyRanges(ipAddr, ranges);
+    }
+
+    bool NatMap::isIpInMyRanges(const Tins::IPv4Address & ipAddr, const NatRangeList & rangeList) {
+        for (NatRange range : rangeList) {
+            if (range.calcIpRange(true).contains(ipAddr)) {
+                return true;
+            }
+        }
+
         return false;
     }
 }
