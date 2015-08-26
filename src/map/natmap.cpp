@@ -9,7 +9,7 @@ namespace otonat {
         //dtor
     }
 
-    NatMap::NatMap(const NatMap& other) : ranges(other.ranges), arpMap(other.arpMap), transMap(other.transMap), incommingPduQueue(other.incommingPduQueue), outgoingPduQueue(other.outgoingPduQueue), zeroIp(other.zeroIp) {
+    NatMap::NatMap(const NatMap& other) : ranges(other.ranges), arpMap(other.arpMap), transMap(other.transMap), reqIpMap(other.reqIpMap), incommingPduQueue(other.incommingPduQueue), outgoingPduQueue(other.outgoingPduQueue), zeroIp(other.zeroIp) {
     }
 
     NatMap& NatMap::operator=(const NatMap& rhs) {
@@ -39,13 +39,13 @@ namespace otonat {
 
         Tins::IP * ip = pduCopy->find_pdu<Tins::IP>();
         if (ip != 0) {
-            if (handleIp(ip)) {
+            if (handleIp(ip, pduCopy)) {
                 outgoingPduQueue.push(pduCopy);
             }
         }
     }
 
-    bool NatMap::handleIp(Tins::IP * ip) {
+    bool NatMap::handleIp(Tins::IP * ip, const Tins::PDU * originPDU) {
 
         if (isForMeOrFromMeIp(ip)) {
             return false;
@@ -70,6 +70,12 @@ namespace otonat {
 
             return true;
         } else {
+            const Tins::EthernetII * eth = originPDU->find_pdu<Tins::EthernetII>();
+            if (eth != 0){
+                Tins::EthernetII fakeArp = Tins::ARP::make_arp_request(ip->dst_addr(), ip->src_addr(), eth->src_addr());
+                SendTranslatedArpRequest(originPDU->find_pdu<Tins::ARP>());
+            }
+            
             return false;
         }
     }
@@ -132,12 +138,29 @@ namespace otonat {
         return transAddr;
     }
 
-    bool NatMap::handleArp(Tins::ARP * /*arp*/) {
-        return false;
+    bool NatMap::handleArp(Tins::ARP * arp) {
+
+        if (isForMeOrFromMeArp(arp)) {
+            return false;
+        }
+        
+        switch (arp->opcode()) {
+            case Tins::ARP::REQUEST:
+                return this->handleArpReq(arp);
+            case Tins::ARP::REPLY:
+                return this->handleArpReply(arp);
+            default:
+                return false;
+        }
     }
 
     bool NatMap::isForMeOrFromMeIp(const Tins::IP* ip) {
         return isForMeOrFromMeIp(ip, ranges);
+    }
+
+    bool NatMap::isForMeOrFromMeArp(const Tins::ARP * arp) {
+        Tins::IP fakeIp(arp->target_ip_addr(), arp->sender_ip_addr());
+        return isForMeOrFromMeIp(&fakeIp);
     }
 
     bool NatMap::isForMeOrFromMeIp(const Tins::IP * ip, const NatRangeList & rangeList) {
@@ -164,5 +187,82 @@ namespace otonat {
         }
 
         return false;
+    }
+
+    bool NatMap::handleArpReq(Tins::ARP* arp) {
+        Tins::IPv4Address targetIp = arp->target_ip_addr();
+        Tins::IPv4Address senderIp = arp->sender_ip_addr();
+        IpAdressMap::const_iterator transTargetIpIter = this->transMap.find(targetIp);
+        if (transTargetIpIter != transMap.end()) {
+            Tins::IPv4Address transTargetIp = transTargetIpIter->second;
+            arp->target_ip_addr(transTargetIp);
+            IpAdressMap::const_iterator transSenderIpIter = this->transMap.find(senderIp);
+            if (transSenderIpIter != transMap.end()) {
+                arp->sender_ip_addr(transSenderIpIter->second);
+                return true;
+            } else {
+
+                for (NatRange & range : this->ranges) {
+                    const Tins::NetworkInterface::Info & interfaceInfo = range.interface.info();
+                    if (!interfaceInfo.is_up) {
+                        continue;
+                    }
+
+                    Tins::IPv4Range ipRange = range.calcIpRange(true);
+                    if (!ipRange.contains(transTargetIp)) {
+                        continue;
+                    }
+
+                    Tins::IPv4Address transSenderIp = range.mapIPv4Addres(senderIp, true);
+                    arp->sender_ip_addr(transSenderIp);
+
+                    IpAdressMap::const_iterator transSenderIpReqIter = this->reqIpMap.find(transSenderIp);
+                    if (transSenderIpReqIter == reqIpMap.end()) {
+                        this->reqIpMap.insert(IPv4AddressEntry(transSenderIp, senderIp));
+                    }
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        SendTranslatedArpRequest(arp);
+        return false;
+    }
+
+    bool NatMap::handleArpReply(Tins::ARP* arp) {
+        return false;
+    }
+    
+    void NatMap::SendTranslatedArpRequest(const Tins::ARP * arp){
+        Tins::IPv4Address targetIp = arp->target_ip_addr();        
+        for (NatRange & range : this->ranges) {
+            const Tins::NetworkInterface::Info & interfaceInfo = range.interface.info();
+            if (!interfaceInfo.is_up) {
+                continue;
+            }
+
+            Tins::IPv4Range ipRange = range.calcIpRange(true);
+            if (ipRange.contains(targetIp)) {
+                continue;
+            }
+
+            Tins::IPv4Address senderIp = arp->sender_ip_addr();
+            Tins::IPv4Address transSenderIp = range.mapIPv4Addres(senderIp, true);
+            Tins::IPv4Address transTargetIp = range.mapIPv4Addres(targetIp, true);
+            IpAdressMap::const_iterator transSenderIpReqIter = this->reqIpMap.find(transSenderIp);
+            if (transSenderIpReqIter == reqIpMap.end()) {
+                this->reqIpMap.insert(IPv4AddressEntry(transSenderIp, senderIp));
+            }
+
+            IpAdressMap::const_iterator transTargetIpReqIter = this->reqIpMap.find(transTargetIp);
+            if (transTargetIpReqIter == reqIpMap.end()) {
+                this->reqIpMap.insert(IPv4AddressEntry(transTargetIp, targetIp));
+            }
+            
+            Tins::EthernetII transArp = Tins::ARP::make_arp_request(transTargetIp, transSenderIp, arp->sender_hw_addr());
+            outgoingPduQueue.push(transArp.clone());
+        }
     }
 }

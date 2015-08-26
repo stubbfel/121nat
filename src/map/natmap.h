@@ -26,6 +26,7 @@ namespace otonat {
         NatRangeList ranges;
         IpAdressMacMap arpMap;
         IpAdressMap transMap;
+        IpAdressMap reqIpMap;
         PduQueue incommingPduQueue;
         PduQueue outgoingPduQueue;
         void handlePdu(const Tins::PDU * pdu);
@@ -33,16 +34,20 @@ namespace otonat {
     protected:
 
     private:
-        bool handleIp(Tins::IP * ip);
+        bool handleIp(Tins::IP * ip, const Tins::PDU * originPDU);
         bool handleArp(Tins::ARP * arp);
+        bool handleArpReq(Tins::ARP * arp);
+        bool handleArpReply(Tins::ARP * arp);
         Tins::IPv4Address InsertOrUdpateTranslateIpAddress(const Tins::IPv4Address & originIp, const NatRange & range);
         Tins::IPv4Address InsertOrUdpateTranslateIpAddress(const Tins::IPv4Address & originIp, const Tins::IPv4Address & transIp, NatRangeList & rangeList);
         void TranslateIpPacket(Tins::IP * ip, const Tins::IPv4Address & transIp);
         Tins::IPv4Address zeroIp;
         bool isForMeOrFromMeIp(const Tins::IP * ip);
+        bool isForMeOrFromMeArp(const Tins::ARP * arp);
         static bool isForMeOrFromMeIp(const Tins::IP * ip, const NatRangeList & rangeList);
         bool isIpInMyRanges(const Tins::IPv4Address & ipAddr);
         static bool isIpInMyRanges(const Tins::IPv4Address & ipAddr, const NatRangeList & rangeList);
+        void SendTranslatedArpRequest(const Tins::ARP * arp);
     };
 }
 
