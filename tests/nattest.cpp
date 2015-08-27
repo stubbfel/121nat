@@ -84,64 +84,65 @@ void nattest::testTranslateIp() {
     Tins::EthernetII eth4 = Tins::EthernetII("00:00:00:00:00:02", "00:00:00:00:00:05") / Tins::IP("10.0.3.55", "10.0.1.41") / Tins::TCP();
     Tins::EthernetII eth4Ack = Tins::EthernetII("00:00:00:00:00:05", "00:00:00:00:00:02") / Tins::IP("172.27.1.41", "172.17.3.55") / Tins::TCP();
 
-    natMap.handlePdu(&eth);
-    CPPUNIT_ASSERT(natMap.outgoingPduQueue.empty());
+    natMap.handlePdu(eth.clone());
+    CPPUNIT_ASSERT(natMap.outgoingPduQueue.size() == 1);
+    natMap.outgoingPduQueue.pop();            
 
     natMap.transMap.insert(otonat::NatMap::IPv4AddressEntry(Tins::IPv4Address("172.27.0.20"), Tins::IPv4Address("10.0.0.20")));
 
-    natMap.handlePdu(&ethW);
+    natMap.handlePdu(ethW.clone());
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.empty());
 
-    natMap.handlePdu(&eth);
+    natMap.handlePdu(eth.clone());
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.size() == 1);
     const Tins::PDU * result = natMap.outgoingPduQueue.front();
     checkEth(result->rfind_pdu<Tins::EthernetII>(), "00:00:00:00:00:01", "00:00:00:00:00:02", "10.0.0.20", "10.0.3.55");
     natMap.outgoingPduQueue.pop();
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.empty());
 
-    natMap.handlePdu(&ethAck);
+    natMap.handlePdu(ethAck.clone());
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.size() == 1);
     const Tins::PDU * resultAck = natMap.outgoingPduQueue.front();
     checkEth(resultAck->rfind_pdu<Tins::EthernetII>(), "00:00:00:00:00:02", "00:00:00:00:00:01", "172.16.3.55", "172.27.0.20");
     natMap.outgoingPduQueue.pop();
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.empty());
 
-    natMap.handlePdu(&eth2);
+    natMap.handlePdu(eth2.clone());
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.size() == 1);
     const Tins::PDU * result2 = natMap.outgoingPduQueue.front();
     checkEth(result2->rfind_pdu<Tins::EthernetII>(), "00:00:00:00:00:01", "00:00:00:00:00:03", "10.0.0.20", "10.0.3.55");
     natMap.outgoingPduQueue.pop();
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.empty());
 
-    natMap.handlePdu(&eth2Ack);
+    natMap.handlePdu(eth2Ack.clone());
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.size() == 1);
     const Tins::PDU * result2Ack = natMap.outgoingPduQueue.front();
     checkEth(result2Ack->rfind_pdu<Tins::EthernetII>(), "00:00:00:00:00:03", "00:00:00:00:00:01", "172.17.3.55", "172.27.0.20");
     natMap.outgoingPduQueue.pop();
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.empty());
 
-    natMap.handlePdu(&eth3);
+    natMap.handlePdu(eth3.clone());
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.size() == 1);
     const Tins::PDU * result3 = natMap.outgoingPduQueue.front();
     checkEth(result3->rfind_pdu<Tins::EthernetII>(), "00:00:00:00:00:01", "00:00:00:00:00:04", "10.0.0.20", "10.0.1.40");
     natMap.outgoingPduQueue.pop();
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.empty());
 
-    natMap.handlePdu(&eth3Ack);
+    natMap.handlePdu(eth3Ack.clone());
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.size() == 1);
     const Tins::PDU * result3Ack = natMap.outgoingPduQueue.front();
     checkEth(result3Ack->rfind_pdu<Tins::EthernetII>(), "00:00:00:00:00:04", "00:00:00:00:00:01", "172.18.1.40", "172.27.0.20");
     natMap.outgoingPduQueue.pop();
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.empty());
 
-    natMap.handlePdu(&eth4);
+    natMap.handlePdu(eth4.clone());
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.size() == 1);
     const Tins::PDU * result4 = natMap.outgoingPduQueue.front();
     checkEth(result4->rfind_pdu<Tins::EthernetII>(), "00:00:00:00:00:02", "00:00:00:00:00:05", "172.17.3.55", "172.27.1.41");
     natMap.outgoingPduQueue.pop();
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.empty());
 
-    natMap.handlePdu(&eth4Ack);
+    natMap.handlePdu(eth4Ack.clone());
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.size() == 1);
     const Tins::PDU * result4Ack = natMap.outgoingPduQueue.front();
     checkEth(result4Ack->rfind_pdu<Tins::EthernetII>(), "00:00:00:00:00:05", "00:00:00:00:00:02", "10.0.1.41", "10.0.3.55");
@@ -154,10 +155,10 @@ void nattest::testForMeFromMe() {
     Tins::EthernetII FromMe = Tins::EthernetII("00:00:00:00:00:01", "00:00:00:00:00:03") / Tins::IP("172.27.0.20", "172.16.0.1") / Tins::TCP();
     natMap.transMap.insert(otonat::NatMap::IPv4AddressEntry(Tins::IPv4Address("172.27.0.20"), Tins::IPv4Address("10.0.0.20")));
 
-    natMap.handlePdu(&forMe);
+    natMap.handlePdu(forMe.clone());
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.empty());
 
-    natMap.handlePdu(&FromMe);
+    natMap.handlePdu(FromMe.clone());
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.empty());
 }
 

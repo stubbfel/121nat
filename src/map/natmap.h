@@ -38,6 +38,7 @@ namespace otonat {
         bool handleArp(Tins::ARP * arp);
         bool handleArpReq(Tins::ARP * arp);
         bool handleArpReply(Tins::ARP * arp);
+        bool handleArpAndTranslateSenderIp(Tins::ARP* arp);
         Tins::IPv4Address InsertOrUdpateTranslateIpAddress(const Tins::IPv4Address & originIp, const NatRange & range);
         Tins::IPv4Address InsertOrUdpateTranslateIpAddress(const Tins::IPv4Address & originIp, const Tins::IPv4Address & transIp, NatRangeList & rangeList);
         void TranslateIpPacket(Tins::IP * ip, const Tins::IPv4Address & transIp);
