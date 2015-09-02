@@ -21,6 +21,8 @@ class nattest : public CPPUNIT_NS::TestFixture {
     CPPUNIT_TEST(testIpCalcEth1);
     CPPUNIT_TEST(testIpCalcEth2);
     CPPUNIT_TEST(testForMeFromMe);
+    CPPUNIT_TEST(testTranslateArp);
+    CPPUNIT_TEST(testTranslateArpIp);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -63,14 +65,19 @@ private:
     void testIpCalcEth1();
     void testIpCalcEth2();
     void testTranslateIp();
+    void testTranslateArp();
+    void testTranslateArpIp();
     void testForMeFromMe();
 
+    void printArp(const Tins::ARP & arp);
     void printIp(const Tins::IP & ip);
     void printEth(const Tins::EthernetII & eth);
     void checkAndPrintIp(const Tins::IP & ip, const Tins::IPv4Address & targetDstIp, const Tins::IPv4Address & targetSrcIp);
     void checkAndPrintEth(const Tins::EthernetII & eth, const Tins::HWAddress<6> & targetDstMac, const Tins::HWAddress<6> & targetSrcMac, const Tins::IPv4Address & targetDstIp, const Tins::IPv4Address & targetSrcIp);
+    void checkAndPrintArp(const Tins::ARP & arp, uint16_t targetArpType, const Tins::HWAddress<6> & targetTargetMac, const Tins::HWAddress<6> & targetSenderMac, const Tins::IPv4Address & targetTaregtIp, const Tins::IPv4Address & targetSenderIp);
     void checkIp(const Tins::IP & ip, const Tins::IPv4Address & targetDstIp, const Tins::IPv4Address & targetSrcIp);
     void checkEth(const Tins::EthernetII & eth, const Tins::HWAddress<6> & targetDstMac, const Tins::HWAddress<6> & targetSrcMac, const Tins::IPv4Address & targetDstIp, const Tins::IPv4Address & targetSrcIp);
+    void checkArp(const Tins::ARP & arp, uint16_t targetArpType, const Tins::HWAddress<6> & targetTargetMac, const Tins::HWAddress<6> & targetSenderMac, const Tins::IPv4Address & targetTaregtIp, const Tins::IPv4Address & targetSenderIp);
 };
 
 #endif	/* NATTEST_H */
