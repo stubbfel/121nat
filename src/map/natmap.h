@@ -6,6 +6,8 @@
 #include <queue>
 #include <tins/tins.h>
 #include "NatRange.h"
+#include <mutex>
+
 namespace otonat {
 
     class NatMap {
@@ -28,7 +30,14 @@ namespace otonat {
         PduQueue incommingPduQueue;
         PduQueue outgoingPduQueue;
         void handlePdu(const Tins::PDU * pdu);
+        void pushPduToIncommingPduQueue(const Tins::PDU * pdu);
+        const Tins::PDU * popPduIncommingPduQueue();
+        void pushPduToOutgoingPduQueue(const Tins::PDU * pdu);
+        const Tins::PDU * popPduOutgoingPduQueue();
 
+        static const Tins::PDU * popPduPduQueue(PduQueue & queue, std::mutex & mtx);
+        static void pushPduToPduQueue(const Tins::PDU * pdu, PduQueue & queue, std::mutex & mtx);
+        
     protected:
 
     private:
@@ -49,6 +58,9 @@ namespace otonat {
         bool isIpInMyRanges(const Tins::IPv4Address & ipAddr) const;
         static bool isIpInMyRanges(const Tins::IPv4Address & ipAddr, const NatRangeList & rangeList);
         void SendTranslatedArpRequest(const Tins::ARP * arp);
+
+        std::mutex incommingQueueMutex;
+        std::mutex outgoingQueueMutex;
     };
 }
 

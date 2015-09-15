@@ -23,6 +23,8 @@ class nattest : public CPPUNIT_NS::TestFixture {
     CPPUNIT_TEST(testForMeFromMe);
     CPPUNIT_TEST(testTranslateArp);
     CPPUNIT_TEST(testTranslateArpIp);
+    CPPUNIT_TEST(testQueues);
+    CPPUNIT_TEST(testThreadQueues);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -68,6 +70,8 @@ private:
     void testTranslateArp();
     void testTranslateArpIp();
     void testForMeFromMe();
+    void testQueues();
+    void testThreadQueues();
 
     void printArp(const Tins::ARP & arp);
     void printIp(const Tins::IP & ip);

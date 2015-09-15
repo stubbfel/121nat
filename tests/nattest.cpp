@@ -8,7 +8,7 @@
 #include "nattest.h"
 #include "../src/map/NatRange.h"
 #include <iostream>
-
+#include <thread>
 CPPUNIT_TEST_SUITE_REGISTRATION(nattest);
 
 nattest::nattest() {
@@ -73,7 +73,7 @@ void nattest::testIpCalcEth2() {
     CPPUNIT_ASSERT_EQUAL(expetedIp, resultIp);
 }
 
-void nattest::testTranslateArpIp(){
+void nattest::testTranslateArpIp() {
     natMap.reqIpMap.clear();
     natMap.transMap.clear();
     Tins::EthernetII arp1 = Tins::ARP::make_arp_request("172.17.0.20", "172.16.3.55", "00:00:00:00:00:02");
@@ -98,7 +98,7 @@ void nattest::testTranslateArpIp(){
     const Tins::PDU * resultArp1 = natMap.outgoingPduQueue.front();
     checkArp(resultArp1->rfind_pdu<Tins::ARP>(), Tins::ARP::REQUEST, "00:00:00:00:00:00", "00:00:00:00:00:02", "10.0.0.20", "10.0.3.55");
     natMap.outgoingPduQueue.pop();
-    
+
     natMap.handlePdu(arp3.clone());
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.size() == 1);
     const Tins::PDU * resultArp2 = natMap.outgoingPduQueue.front();
@@ -107,7 +107,7 @@ void nattest::testTranslateArpIp(){
 
     natMap.handlePdu(arp4.clone());
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.empty());
-    
+
     natMap.handlePdu(ethW.clone());
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.empty());
 
@@ -166,7 +166,7 @@ void nattest::testTranslateArpIp(){
     checkEth(result4Ack->rfind_pdu<Tins::EthernetII>(), "00:00:00:00:00:05", "00:00:00:00:00:02", "10.0.1.41", "10.0.3.55");
     natMap.outgoingPduQueue.pop();
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.empty());
-    
+
     CPPUNIT_ASSERT(natMap.transMap.size() == 9);
     CPPUNIT_ASSERT(natMap.reqIpMap.empty());
     /*for (auto& entry : natMap.transMap){
@@ -191,13 +191,13 @@ void nattest::testTranslateArp() {
     const Tins::PDU * resultArp1 = natMap.outgoingPduQueue.front();
     checkArp(resultArp1->rfind_pdu<Tins::ARP>(), Tins::ARP::REQUEST, "00:00:00:00:00:00", "00:00:00:00:00:02", "10.0.0.20", "10.0.3.55");
     natMap.outgoingPduQueue.pop();
-    
+
     natMap.handlePdu(arp3.clone());
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.size() == 1);
     const Tins::PDU * resultArp2 = natMap.outgoingPduQueue.front();
     checkArp(resultArp2->rfind_pdu<Tins::ARP>(), Tins::ARP::REPLY, "00:00:00:00:00:02", "00:00:00:00:00:01", "172.16.3.55", "172.27.0.20");
     natMap.outgoingPduQueue.pop();
-    
+
     natMap.handlePdu(arp4.clone());
     CPPUNIT_ASSERT(natMap.outgoingPduQueue.empty());
 }
@@ -299,6 +299,32 @@ void nattest::testNatInterfaces() {
     CPPUNIT_ASSERT(!natMap.ranges.empty());
 }
 
+void nattest::testQueues() {
+    Tins::EthernetII forMe = Tins::EthernetII("00:00:00:00:00:01", "00:00:00:00:00:03") / Tins::IP("172.16.0.1", "172.17.3.55") / Tins::TCP();
+    Tins::EthernetII FromMe = Tins::EthernetII("00:00:00:00:00:01", "00:00:00:00:00:03") / Tins::IP("172.27.0.20", "172.16.0.1") / Tins::TCP();
+    natMap.pushPduToIncommingPduQueue(forMe.clone());
+    natMap.pushPduToOutgoingPduQueue(FromMe.clone());
+    const Tins::PDU * result1 = natMap.popPduOutgoingPduQueue();
+    checkEth(result1->rfind_pdu<Tins::EthernetII>(), "00:00:00:00:00:01", "00:00:00:00:00:03", "172.27.0.20", "172.16.0.1");
+    const Tins::PDU * result2 = natMap.popPduIncommingPduQueue();
+    checkEth(result2->rfind_pdu<Tins::EthernetII>(), "00:00:00:00:00:01", "00:00:00:00:00:03", "172.16.0.1", "172.17.3.55");
+    delete result1;
+    delete result2;
+}
+
+void nattest::testThreadQueues() {
+    std::thread threads[10];
+    for (int i = 0; i < 10; ++i)
+    {
+        threads[i] = std::thread(&nattest::testQueues, this);
+    }
+    
+    for (auto& th : threads) 
+    {
+        th.join();
+    }
+}
+
 void nattest::printIp(const Tins::IP & ip) {
     std::cout << std::endl << "### Ip-Packet ###" << std::endl;
     std::cout << "ip_dst: " << ip.dst_addr() << std::endl;
@@ -321,7 +347,7 @@ void nattest::printEth(const Tins::EthernetII & eth) {
     } else {
         std::cout << std::endl;
     }
-    
+
     std::cout << "++++++++++++++++++++++" << std::endl;
 }
 
