@@ -8,6 +8,7 @@
         <itemPath>src/map/natmap.h</itemPath>
       </logicalFolder>
       <itemPath>src/map/NatRange.h</itemPath>
+      <itemPath>src/PduSender.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -20,6 +21,7 @@
         <itemPath>src/map/natmap.cpp</itemPath>
       </logicalFolder>
       <itemPath>src/map/NatRange.cpp</itemPath>
+      <itemPath>src/PduSender.cpp</itemPath>
       <itemPath>src/main.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -79,6 +81,10 @@
           </linkerLibItems>
         </linkerTool>
       </folder>
+      <item path="src/PduSender.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/PduSender.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="src/main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/map/NatRange.cpp" ex="false" tool="1" flavor2="0">
@@ -136,6 +142,10 @@
           </linkerLibItems>
         </linkerTool>
       </folder>
+      <item path="src/PduSender.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/PduSender.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="src/main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/map/NatRange.cpp" ex="false" tool="1" flavor2="0">
@@ -187,6 +197,10 @@
           </linkerLibItems>
         </linkerTool>
       </folder>
+      <item path="src/PduSender.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/PduSender.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="src/main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/map/NatRange.cpp" ex="false" tool="1" flavor2="0">

@@ -35,6 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/src/PduSender.o \
 	${OBJECTDIR}/src/main.o \
 	${OBJECTDIR}/src/map/NatRange.o \
 	${OBJECTDIR}/src/map/natmap.o
@@ -69,6 +70,11 @@ LDLIBSOPTIONS=
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/1t1nat: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/1t1nat ${OBJECTFILES} ${LDLIBSOPTIONS}
+
+${OBJECTDIR}/src/PduSender.o: src/PduSender.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Itest -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PduSender.o src/PduSender.cpp
 
 ${OBJECTDIR}/src/main.o: src/main.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -106,6 +112,19 @@ ${TESTDIR}/tests/nattestrunner.o: tests/nattestrunner.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Itest -I. -std=c++11 `cppunit-config --cflags` -MMD -MP -MF "$@.d" -o ${TESTDIR}/tests/nattestrunner.o tests/nattestrunner.cpp
 
+
+${OBJECTDIR}/src/PduSender_nomain.o: ${OBJECTDIR}/src/PduSender.o src/PduSender.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/PduSender.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} "$@.d";\
+	    $(COMPILE.cc) -g -Itest -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PduSender_nomain.o src/PduSender.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/src/PduSender.o ${OBJECTDIR}/src/PduSender_nomain.o;\
+	fi
 
 ${OBJECTDIR}/src/main_nomain.o: ${OBJECTDIR}/src/main.o src/main.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

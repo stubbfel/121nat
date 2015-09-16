@@ -9,7 +9,8 @@
 #include <mutex>
 
 namespace otonat {
-
+    static const Tins::IPv4Address zeroIp;
+    
     class NatMap {
     public:
         typedef std::vector<NatRange> NatRangeList;
@@ -31,11 +32,11 @@ namespace otonat {
         PduQueue outgoingPduQueue;
         void handlePdu(const Tins::PDU * pdu);
         void pushPduToIncommingPduQueue(const Tins::PDU * pdu);
-        const Tins::PDU * popPduIncommingPduQueue();
+        Tins::PDU * popPduIncommingPduQueue();
         void pushPduToOutgoingPduQueue(const Tins::PDU * pdu);
-        const Tins::PDU * popPduOutgoingPduQueue();
+        Tins::PDU * popPduOutgoingPduQueue();
 
-        static const Tins::PDU * popPduPduQueue(PduQueue & queue, std::mutex & mtx);
+        static Tins::PDU * popPduPduQueue(PduQueue & queue, std::mutex & mtx);
         static void pushPduToPduQueue(const Tins::PDU * pdu, PduQueue & queue, std::mutex & mtx);
         
     protected:
@@ -51,7 +52,6 @@ namespace otonat {
         Tins::IPv4Address InsertOrUdpateTranslateIpAddress(const Tins::IPv4Address & originIp, const Tins::IPv4Address & otherTransSameRangeIp, NatRangeList & rangeList);
         void TranslateIpPacket(Tins::IP * ip, const Tins::IPv4Address & transDstIp);
         const Tins::IPv4Address TranslateArpIp(const Tins::IPv4Address & arpIp);
-        const Tins::IPv4Address zeroIp;
         bool isForMeOrFromMeIp(const Tins::IP * ip) const;
         bool isForMeOrFromMeArp(const Tins::ARP * arp) const;
         static bool isForMeOrFromMeIp(const Tins::IP * ip, const NatRangeList & rangeList);

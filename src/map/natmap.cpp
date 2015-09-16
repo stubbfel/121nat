@@ -24,7 +24,7 @@ namespace otonat {
         this->outgoingQueueMutex.unlock();
     }
 
-    NatMap::NatMap(const NatMap& other) : ranges(other.ranges), transMap(other.transMap), reqIpMap(other.reqIpMap), incommingPduQueue(other.incommingPduQueue), outgoingPduQueue(other.outgoingPduQueue), zeroIp(other.zeroIp) {
+    NatMap::NatMap(const NatMap& other) : ranges(other.ranges), transMap(other.transMap), reqIpMap(other.reqIpMap), incommingPduQueue(other.incommingPduQueue), outgoingPduQueue(other.outgoingPduQueue) {
     }
 
     NatMap& NatMap::operator=(const NatMap& rhs) {
@@ -239,13 +239,13 @@ namespace otonat {
     bool NatMap::handleArpReply(Tins::ARP* arp) {
         const Tins::IPv4Address targetIp = arp->target_ip_addr();
         const Tins::IPv4Address transTargetIp = TranslateArpIp(targetIp);
-        if (transTargetIp == this->zeroIp) {
+        if (transTargetIp == zeroIp) {
             return false;
         }
 
         const Tins::IPv4Address senderIp = arp->sender_ip_addr();
         const Tins::IPv4Address transSenderIp = TranslateArpIp(senderIp);
-        if (transSenderIp == this->zeroIp) {
+        if (transSenderIp == zeroIp) {
             return false;
         }
 
@@ -260,7 +260,7 @@ namespace otonat {
         if (transArpIpIter == transMap.end()) {
             IpAdressMap::const_iterator transReqArpIpIter = this->reqIpMap.find(arpIp);
             if (transReqArpIpIter == reqIpMap.end()) {
-                return this->zeroIp;
+                return zeroIp;
             }
 
             transArpIp = transReqArpIpIter->second;
@@ -335,7 +335,7 @@ namespace otonat {
         pushPduToPduQueue(pdu, this->incommingPduQueue, this ->incommingQueueMutex);
     }
 
-    const Tins::PDU * NatMap::popPduIncommingPduQueue() {
+    Tins::PDU * NatMap::popPduIncommingPduQueue() {
         return popPduPduQueue(this->incommingPduQueue, this->incommingQueueMutex);
     }
 
@@ -343,14 +343,19 @@ namespace otonat {
         pushPduToPduQueue(pdu, this->outgoingPduQueue, this->outgoingQueueMutex);
     }
 
-    const Tins::PDU * NatMap::popPduOutgoingPduQueue() {
+    Tins::PDU * NatMap::popPduOutgoingPduQueue() {
         return popPduPduQueue(this->outgoingPduQueue, this->outgoingQueueMutex);
     }
 
-    const Tins::PDU * NatMap::popPduPduQueue(PduQueue & queue, std::mutex & mtx) {
+    Tins::PDU * NatMap::popPduPduQueue(PduQueue & queue, std::mutex & mtx) {
         mtx.lock();
+        if(queue.empty()){
+            mtx.unlock();
+            return nullptr;
+        }
+        
         const Tins::PDU * result = queue.front();
-        const Tins::PDU * outPut = result->clone();
+        Tins::PDU * outPut = result->clone();
         queue.pop();
         mtx.unlock();
         delete result;
