@@ -36,6 +36,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/src/PduSender.o \
+	${OBJECTDIR}/src/PduSniffer.o \
 	${OBJECTDIR}/src/main.o \
 	${OBJECTDIR}/src/map/NatRange.o \
 	${OBJECTDIR}/src/map/natmap.o
@@ -75,6 +76,11 @@ ${OBJECTDIR}/src/PduSender.o: src/PduSender.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PduSender.o src/PduSender.cpp
+
+${OBJECTDIR}/src/PduSniffer.o: src/PduSniffer.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PduSniffer.o src/PduSniffer.cpp
 
 ${OBJECTDIR}/src/main.o: src/main.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -124,6 +130,19 @@ ${OBJECTDIR}/src/PduSender_nomain.o: ${OBJECTDIR}/src/PduSender.o src/PduSender.
 	    $(COMPILE.cc) -O2 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PduSender_nomain.o src/PduSender.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/PduSender.o ${OBJECTDIR}/src/PduSender_nomain.o;\
+	fi
+
+${OBJECTDIR}/src/PduSniffer_nomain.o: ${OBJECTDIR}/src/PduSniffer.o src/PduSniffer.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/PduSniffer.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} "$@.d";\
+	    $(COMPILE.cc) -O2 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PduSniffer_nomain.o src/PduSniffer.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/src/PduSniffer.o ${OBJECTDIR}/src/PduSniffer_nomain.o;\
 	fi
 
 ${OBJECTDIR}/src/main_nomain.o: ${OBJECTDIR}/src/main.o src/main.cpp 
