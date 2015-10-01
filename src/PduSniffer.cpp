@@ -6,7 +6,7 @@
  */
 
 #include "PduSniffer.h"
-
+#include <iostream>
 namespace otonat {
 
     PduSniffer::PduSniffer(NatMap * map) {
@@ -41,6 +41,7 @@ namespace otonat {
     }
 
     bool PduSniffer::sniffPdu(const Tins::PDU& pdu) {
+        std::cout <<"sniff pdu:" << pdu.size() <<std::endl;
         this->map->pushPduToIncommingPduQueue(pdu.clone());
         return this->isRunnig;
     }
@@ -56,7 +57,7 @@ namespace otonat {
     void PduSniffer::SniffInterface(const Tins::NetworkInterface & interface) {
         Start();
         Tins::Sniffer * sniffer = new Tins::Sniffer(interface.name(), config);
-        sniffer->sniff_loop(std::bind(&PduSniffer::sniffPdu, this,  std::placeholders::_1));
+        sniffer->sniff_loop(std::bind(&PduSniffer::sniffPdu, this, std::placeholders::_1));
         this->snifferList.push_back(sniffer);
     }
     

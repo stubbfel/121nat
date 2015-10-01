@@ -1,5 +1,5 @@
 #include "natmap.h"
-
+#include <iostream>
 namespace otonat {
 
     NatMap::NatMap(NatRangeList rangeList) : ranges(rangeList) {
@@ -13,14 +13,14 @@ namespace otonat {
         while (!incommingPduQueue.empty()) {
             incommingPduQueue.pop();
         }
-        
+
         this->incommingQueueMutex.unlock();
-        
+
         this->outgoingQueueMutex.lock();
         while (!outgoingPduQueue.empty()) {
             outgoingPduQueue.pop();
         }
-        
+
         this->outgoingQueueMutex.unlock();
     }
 
@@ -42,6 +42,7 @@ namespace otonat {
     }
 
     void NatMap::handlePdu(const Tins::PDU * pdu) {
+        std::cout << "handle pdu:" << pdu->size() << std::endl;
         if (pdu == nullptr) {
             return;
         }
@@ -219,6 +220,11 @@ namespace otonat {
 
     bool NatMap::handleArpReq(Tins::ARP* arp) {
         const Tins::IPv4Address targetIp = arp->target_ip_addr();
+        IpAdressMap::const_iterator transSenderIpReqIter = this->reqIpMap.find(targetIp);
+        if (transSenderIpReqIter != reqIpMap.end()) {
+            return false;
+        }
+
         IpAdressMap::const_iterator transTargetIpIter = this->transMap.find(targetIp);
         if (transTargetIpIter == transMap.end()) {
             SendTranslatedArpRequest(arp);
@@ -230,7 +236,8 @@ namespace otonat {
         IpAdressMap::const_iterator transSenderIpIter = this->transMap.find(arp->sender_ip_addr());
         if (transSenderIpIter != transMap.end()) {
             arp->sender_ip_addr(transSenderIpIter->second);
-            return false;
+            this->reqIpMap.insert(IPv4AddressEntry(transTargetIp, targetIp));
+            return true;
         }
 
         return handleArpAndTranslateSenderIp(arp);
@@ -238,6 +245,11 @@ namespace otonat {
 
     bool NatMap::handleArpReply(Tins::ARP* arp) {
         const Tins::IPv4Address targetIp = arp->target_ip_addr();
+        IpAdressMap::const_iterator transSenderIpReqIter = this->reqIpMap.find(targetIp);
+        if (transSenderIpReqIter == reqIpMap.end()) {
+            return false;
+        }
+        
         const Tins::IPv4Address transTargetIp = TranslateArpIp(targetIp);
         if (transTargetIp == zeroIp) {
             return false;
@@ -349,11 +361,11 @@ namespace otonat {
 
     Tins::PDU * NatMap::popPduPduQueue(PduQueue & queue, std::mutex & mtx) {
         mtx.lock();
-        if(queue.empty()){
+        if (queue.empty()) {
             mtx.unlock();
             return nullptr;
         }
-        
+
         const Tins::PDU * result = queue.front();
         Tins::PDU * outPut = result->clone();
         queue.pop();
@@ -366,5 +378,21 @@ namespace otonat {
         mtx.lock();
         queue.push(pdu);
         mtx.unlock();
+    }
+
+    void NatMap::translate() {
+        while (true) {
+            Tins::PDU * pdu = this->popPduIncommingPduQueue();
+            if (pdu == nullptr) {
+                continue;
+            }
+
+            this->handlePdu(pdu);
+        }
+    }
+
+    std::thread * NatMap::translateThread() {
+        std::thread * newThread = new std::thread(std::bind(&NatMap::translate, this));
+        return newThread;
     }
 }

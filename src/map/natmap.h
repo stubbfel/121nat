@@ -7,6 +7,7 @@
 #include <tins/tins.h>
 #include "NatRange.h"
 #include <mutex>
+#include <thread>
 
 namespace otonat {
     static const Tins::IPv4Address zeroIp;
@@ -30,6 +31,8 @@ namespace otonat {
         IpAdressMap reqIpMap;
         PduQueue incommingPduQueue;
         PduQueue outgoingPduQueue;
+        void translate();
+        std::thread * translateThread();
         void handlePdu(const Tins::PDU * pdu);
         void pushPduToIncommingPduQueue(const Tins::PDU * pdu);
         Tins::PDU * popPduIncommingPduQueue();
