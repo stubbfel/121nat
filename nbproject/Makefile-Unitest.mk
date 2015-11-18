@@ -21,7 +21,7 @@ FC=gfortran
 AS=as
 
 # Macros
-CND_PLATFORM=GNU-Linux-x86
+CND_PLATFORM=GNU-Linux
 CND_DLIB_EXT=so
 CND_CONF=Unitest
 CND_DISTDIR=dist
@@ -46,7 +46,15 @@ TESTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}/tests
 
 # Test Files
 TESTFILES= \
+	${TESTDIR}/TestFiles/f2 \
 	${TESTDIR}/TestFiles/f1
+
+# Test Object Files
+TESTOBJECTFILES= \
+	${TESTDIR}/tests/jsontest.o \
+	${TESTDIR}/tests/jsontestrunner.o \
+	${TESTDIR}/tests/nattest.o \
+	${TESTDIR}/tests/nattestrunner.o
 
 # C Compiler Flags
 CFLAGS=
@@ -66,11 +74,11 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/1t1nat
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/121nat
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/1t1nat: ${OBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/121nat: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/1t1nat ${OBJECTFILES} ${LDLIBSOPTIONS}
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/121nat ${OBJECTFILES} ${LDLIBSOPTIONS}
 
 ${OBJECTDIR}/src/PduSender.o: src/PduSender.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -101,10 +109,28 @@ ${OBJECTDIR}/src/map/natmap.o: src/map/natmap.cpp
 .build-subprojects:
 
 # Build Test Targets
-.build-tests-conf: .build-conf ${TESTFILES}
+.build-tests-conf: .build-tests-subprojects .build-conf ${TESTFILES}
+.build-tests-subprojects:
+
+${TESTDIR}/TestFiles/f2: ${TESTDIR}/tests/jsontest.o ${TESTDIR}/tests/jsontestrunner.o ${OBJECTFILES:%.o=%_nomain.o}
+	${MKDIR} -p ${TESTDIR}/TestFiles
+	${LINK.cc}   -o ${TESTDIR}/TestFiles/f2 $^ ${LDLIBSOPTIONS} `cppunit-config --libs`   
+
 ${TESTDIR}/TestFiles/f1: ${TESTDIR}/tests/nattest.o ${TESTDIR}/tests/nattestrunner.o ${OBJECTFILES:%.o=%_nomain.o}
 	${MKDIR} -p ${TESTDIR}/TestFiles
 	${LINK.cc}   -o ${TESTDIR}/TestFiles/f1 $^ ${LDLIBSOPTIONS} `cppunit-config --libs`   
+
+
+${TESTDIR}/tests/jsontest.o: tests/jsontest.cpp 
+	${MKDIR} -p ${TESTDIR}/tests
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Itest -std=c++11 `cppunit-config --cflags` -MMD -MP -MF "$@.d" -o ${TESTDIR}/tests/jsontest.o tests/jsontest.cpp
+
+
+${TESTDIR}/tests/jsontestrunner.o: tests/jsontestrunner.cpp 
+	${MKDIR} -p ${TESTDIR}/tests
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Itest -std=c++11 `cppunit-config --cflags` -MMD -MP -MF "$@.d" -o ${TESTDIR}/tests/jsontestrunner.o tests/jsontestrunner.cpp
 
 
 ${TESTDIR}/tests/nattest.o: tests/nattest.cpp 
@@ -188,6 +214,7 @@ ${OBJECTDIR}/src/map/natmap_nomain.o: ${OBJECTDIR}/src/map/natmap.o src/map/natm
 .test-conf:
 	@if [ "${TEST}" = "" ]; \
 	then  \
+	    ${TESTDIR}/TestFiles/f2 || true; \
 	    ${TESTDIR}/TestFiles/f1 || true; \
 	else  \
 	    ./${TEST} || true; \
@@ -196,7 +223,7 @@ ${OBJECTDIR}/src/map/natmap_nomain.o: ${OBJECTDIR}/src/map/natmap.o src/map/natm
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/1t1nat
+	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/121nat
 
 # Subprojects
 .clean-subprojects:

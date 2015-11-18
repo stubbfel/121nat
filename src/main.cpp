@@ -4,27 +4,42 @@
 #include "map/natmap.h"
 #include "PduSniffer.h"
 #include "PduSender.h"
-
-int main()
+#include <json/json.h>
+#include <json/value.h>
+#include <fstream>
+int main(int argc, char** argv)
 {
-    Tins::NetworkInterface net1("vboxnet0");
-    Tins::NetworkInterface net2("vboxnet1");
-    otonat::NatRange range1(net1, "10.0.0.0", "255.255.240.0");
-    otonat::NatRange range2(net2, "172.27.0.0", "255.255.0.0");
+    if (argc < 2){
+        return 0;
+    }
+    
     otonat::NatMap::NatRangeList list;
-    list.push_back(range1);
-    list.push_back(range2);
+    std::ifstream config_doc(argv[1], std::ifstream::binary);
+    Json::Value root;
+    config_doc >> root;
+    const Json::Value netcards = root;
+    for (Json::Value netcard : netcards) {
+        const std::string name = netcard.getMemberNames()[0].c_str();
+        const Json::Value cardMember = netcard[name];
+        const std::string ipStr = cardMember["rangeIpAddr"].asString();
+        const std::string maskStr = cardMember["rangeNetmask"].asString();
+
+        const Tins::NetworkInterface net(name);
+        const otonat::NatRange netRange(net, Tins::IPv4Address(ipStr), Tins::IPv4Address(maskStr));
+        list.push_back(netRange);
+    }
+    
     otonat::NatMap natMap = otonat::NatMap(list);
     otonat::PduSniffer sniffer(&natMap);
     otonat::PduSender sender(&natMap);
     std::thread * mapThread = natMap.translateThread();
     std::thread * senderThread = sender.SendPdusFromQueueThread();
-    std::thread * snifferThread1 = sniffer.SniffInterfaceInNewThread(net1);
-    std::thread * snifferThread2 = sniffer.SniffInterfaceInNewThread(net2);
+    for (otonat::NatRange & net : list) {
+        sniffer.SniffInterfaceInNewThread(net.interface);
+    }
+    
     mapThread->join();
     senderThread->join();
-    snifferThread1->join();
-    snifferThread2->join();
     return 0;
 }
 

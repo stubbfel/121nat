@@ -1,0 +1,26 @@
+pkgname=121Nat
+pkgver=1.0 # note: if the pkgver had been '0.99-10' then use an underscore. like '0.99_10'
+pkgrel=1
+pkgdesc="transparent one to one nat"
+arch=(any)
+url="http://www.foo.org"
+license=('MIT')
+depends=('pth' 'jsoncpp')
+makedepends=('cmake')
+source=(./$pkgname-$pkgver.tar.gz)
+md5sums=('0e1494ebbcf0b0ca1bfa8475c5078f21')
+
+build() {
+  cd $srcdir/$pkgname
+  mkdir build
+  cd build
+  cmake -DCMAKE_INSTALL_PREFIX=/usr ../
+  make
+}
+
+package() {
+  cd $srcdir/$pkgname/build
+  make DESTDIR=$pkgdir install
+  mkdir -p $pkgdir/etc/$pkgname
+  cp ../src/config.json $pkgdir/etc/$pkgname/config-example.json
+}

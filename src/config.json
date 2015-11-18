@@ -1,0 +1,12 @@
+[{
+        "vboxnet0": {
+            "rangeIpAddr": "10.0.0.0",
+            "rangeNetmask": "255.255.240.0"
+        }
+    }, {
+        "vboxnet1": {
+            "rangeIpAddr": "172.27.0.0",
+            "rangeNetmask": "255.255.0.0"
+        }
+    }]
+
