@@ -1,0 +1,6 @@
+[submodule "lib/src/jsoncpp"]
+	path = lib/src/jsoncpp
+	url = https://github.com/open-source-parsers/jsoncpp.git
+[submodule "lib/src/libtins"]
+	path = lib/src/libtins
+	url = https://github.com/mfontanini/libtins.git

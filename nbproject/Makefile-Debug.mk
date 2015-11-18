@@ -70,11 +70,13 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-ltins -lpthread `pkg-config --libs jsoncpp`  
+LDLIBSOPTIONS=-lpthread lib/bin/libjsoncpp.a -ltins
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/121nat
+
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/121nat: lib/bin/libjsoncpp.a
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/121nat: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
@@ -83,27 +85,27 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/121nat: ${OBJECTFILES}
 ${OBJECTDIR}/src/PduSender.o: src/PduSender.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Wall `pkg-config --cflags jsoncpp` -std=c++11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PduSender.o src/PduSender.cpp
+	$(COMPILE.cc) -g -Wall -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PduSender.o src/PduSender.cpp
 
 ${OBJECTDIR}/src/PduSniffer.o: src/PduSniffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Wall `pkg-config --cflags jsoncpp` -std=c++11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PduSniffer.o src/PduSniffer.cpp
+	$(COMPILE.cc) -g -Wall -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PduSniffer.o src/PduSniffer.cpp
 
 ${OBJECTDIR}/src/main.o: src/main.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Wall `pkg-config --cflags jsoncpp` -std=c++11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/main.o src/main.cpp
+	$(COMPILE.cc) -g -Wall -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/main.o src/main.cpp
 
 ${OBJECTDIR}/src/map/NatRange.o: src/map/NatRange.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src/map
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Wall `pkg-config --cflags jsoncpp` -std=c++11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/map/NatRange.o src/map/NatRange.cpp
+	$(COMPILE.cc) -g -Wall -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/map/NatRange.o src/map/NatRange.cpp
 
 ${OBJECTDIR}/src/map/natmap.o: src/map/natmap.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src/map
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Wall `pkg-config --cflags jsoncpp` -std=c++11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/map/natmap.o src/map/natmap.cpp
+	$(COMPILE.cc) -g -Wall -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/map/natmap.o src/map/natmap.cpp
 
 # Subprojects
 .build-subprojects:
@@ -124,25 +126,25 @@ ${TESTDIR}/TestFiles/f1: ${TESTDIR}/tests/nattest.o ${TESTDIR}/tests/nattestrunn
 ${TESTDIR}/tests/jsontest.o: tests/jsontest.cpp 
 	${MKDIR} -p ${TESTDIR}/tests
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Wall `pkg-config --cflags jsoncpp` -std=c++11 `cppunit-config --cflags` -MMD -MP -MF "$@.d" -o ${TESTDIR}/tests/jsontest.o tests/jsontest.cpp
+	$(COMPILE.cc) -g -Wall -std=c++11 `cppunit-config --cflags` -MMD -MP -MF "$@.d" -o ${TESTDIR}/tests/jsontest.o tests/jsontest.cpp
 
 
 ${TESTDIR}/tests/jsontestrunner.o: tests/jsontestrunner.cpp 
 	${MKDIR} -p ${TESTDIR}/tests
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Wall `pkg-config --cflags jsoncpp` -std=c++11 `cppunit-config --cflags` -MMD -MP -MF "$@.d" -o ${TESTDIR}/tests/jsontestrunner.o tests/jsontestrunner.cpp
+	$(COMPILE.cc) -g -Wall -std=c++11 `cppunit-config --cflags` -MMD -MP -MF "$@.d" -o ${TESTDIR}/tests/jsontestrunner.o tests/jsontestrunner.cpp
 
 
 ${TESTDIR}/tests/nattest.o: tests/nattest.cpp 
 	${MKDIR} -p ${TESTDIR}/tests
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Wall -I. `pkg-config --cflags jsoncpp` -std=c++11 `cppunit-config --cflags` -MMD -MP -MF "$@.d" -o ${TESTDIR}/tests/nattest.o tests/nattest.cpp
+	$(COMPILE.cc) -g -Wall -I. -std=c++11 `cppunit-config --cflags` -MMD -MP -MF "$@.d" -o ${TESTDIR}/tests/nattest.o tests/nattest.cpp
 
 
 ${TESTDIR}/tests/nattestrunner.o: tests/nattestrunner.cpp 
 	${MKDIR} -p ${TESTDIR}/tests
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Wall -I. `pkg-config --cflags jsoncpp` -std=c++11 `cppunit-config --cflags` -MMD -MP -MF "$@.d" -o ${TESTDIR}/tests/nattestrunner.o tests/nattestrunner.cpp
+	$(COMPILE.cc) -g -Wall -I. -std=c++11 `cppunit-config --cflags` -MMD -MP -MF "$@.d" -o ${TESTDIR}/tests/nattestrunner.o tests/nattestrunner.cpp
 
 
 ${OBJECTDIR}/src/PduSender_nomain.o: ${OBJECTDIR}/src/PduSender.o src/PduSender.cpp 
@@ -153,7 +155,7 @@ ${OBJECTDIR}/src/PduSender_nomain.o: ${OBJECTDIR}/src/PduSender.o src/PduSender.
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} "$@.d";\
-	    $(COMPILE.cc) -g -Wall `pkg-config --cflags jsoncpp` -std=c++11  -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PduSender_nomain.o src/PduSender.cpp;\
+	    $(COMPILE.cc) -g -Wall -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PduSender_nomain.o src/PduSender.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/PduSender.o ${OBJECTDIR}/src/PduSender_nomain.o;\
 	fi
@@ -166,7 +168,7 @@ ${OBJECTDIR}/src/PduSniffer_nomain.o: ${OBJECTDIR}/src/PduSniffer.o src/PduSniff
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} "$@.d";\
-	    $(COMPILE.cc) -g -Wall `pkg-config --cflags jsoncpp` -std=c++11  -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PduSniffer_nomain.o src/PduSniffer.cpp;\
+	    $(COMPILE.cc) -g -Wall -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PduSniffer_nomain.o src/PduSniffer.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/PduSniffer.o ${OBJECTDIR}/src/PduSniffer_nomain.o;\
 	fi
@@ -179,7 +181,7 @@ ${OBJECTDIR}/src/main_nomain.o: ${OBJECTDIR}/src/main.o src/main.cpp
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} "$@.d";\
-	    $(COMPILE.cc) -g -Wall `pkg-config --cflags jsoncpp` -std=c++11  -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/main_nomain.o src/main.cpp;\
+	    $(COMPILE.cc) -g -Wall -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/main_nomain.o src/main.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/main.o ${OBJECTDIR}/src/main_nomain.o;\
 	fi
@@ -192,7 +194,7 @@ ${OBJECTDIR}/src/map/NatRange_nomain.o: ${OBJECTDIR}/src/map/NatRange.o src/map/
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} "$@.d";\
-	    $(COMPILE.cc) -g -Wall `pkg-config --cflags jsoncpp` -std=c++11  -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/map/NatRange_nomain.o src/map/NatRange.cpp;\
+	    $(COMPILE.cc) -g -Wall -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/map/NatRange_nomain.o src/map/NatRange.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/map/NatRange.o ${OBJECTDIR}/src/map/NatRange_nomain.o;\
 	fi
@@ -205,7 +207,7 @@ ${OBJECTDIR}/src/map/natmap_nomain.o: ${OBJECTDIR}/src/map/natmap.o src/map/natm
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} "$@.d";\
-	    $(COMPILE.cc) -g -Wall `pkg-config --cflags jsoncpp` -std=c++11  -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/map/natmap_nomain.o src/map/natmap.cpp;\
+	    $(COMPILE.cc) -g -Wall -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/map/natmap_nomain.o src/map/natmap.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/map/natmap.o ${OBJECTDIR}/src/map/natmap_nomain.o;\
 	fi

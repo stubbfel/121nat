@@ -64,9 +64,9 @@
         </ccTool>
         <linkerTool>
           <linkerLibItems>
-            <linkerLibLibItem>tins</linkerLibLibItem>
             <linkerLibLibItem>pthread</linkerLibLibItem>
-            <linkerOptionItem>`pkg-config --libs jsoncpp`</linkerOptionItem>
+            <linkerLibFileItem>lib/bin/libjsoncpp.a</linkerLibFileItem>
+            <linkerLibLibItem>tins</linkerLibLibItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
