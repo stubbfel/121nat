@@ -11,16 +11,36 @@ source=(./$pkgname-$pkgver.tar.gz)
 md5sums=('0e1494ebbcf0b0ca1bfa8475c5078f21')
 
 build() {
-  cd $srcdir/$pkgname
-  mkdir build
-  cd build
-  cmake -DCMAKE_INSTALL_PREFIX=/usr ../
+  cd "${srcdir}/${pkgname}"
+  cd lib
+  mkdir -p bin
+  mkdir -p build/jsoncpp/
+  cd  build/jsoncpp/
+  cmake ../../src/jsoncpp -DCMAKE_INSTALL_PREFIX=/usr
   make
+  cp src/lib_json/libjsoncpp.a ../../bin 
+  cd ../..
+  mkdir -p build/libtins/
+  cd  build/libtins/
+  cmake ../../src/libtins -DLIBTINS_BUILD_SHARED=1 -DLIBTINS_ENABLE_CXX11=1 -DLIBTINS_ENABLE_WPA2=0 -DLIBTINS_ENABLE_DOT11=0 -DHAVE_PCAP_IMMEDIATE_MODE=1 -DCMAKE_INSTALL_PREFIX=/usr
+  make
+  cp lib/libtins.so ../../bin 
+  cd ../../..
+  mkdir -p build/121Natbuild
+  cd build/121Natbuild
+  cmake ../../ -DCMAKE_INSTALL_PREFIX=/usr
+  make
+  cp src/121Nat ../
 }
 
 package() {
-  cd $srcdir/$pkgname/build
-  make DESTDIR=$pkgdir install
-  mkdir -p $pkgdir/etc/$pkgname
-  cp ../src/config.json $pkgdir/etc/$pkgname/config-example.json
+  cd ${srcdir}/${pkgname}/lib/build/jsoncpp
+  make DESTDIR="${pkgdir}" install
+  cd "${srcdir}/${pkgname}/lib/build/libtins"
+  make DESTDIR="${pkgdir}" install
+  cd "${srcdir}/${pkgname}/build/121Natbuild"
+  make DESTDIR="${pkgdir}" install
+  mkdir -p "${pkgdir}/etc/${pkgname}"
+  cp "../../src/config.json" "${pkgdir}/etc/${pkgname}/config-example.json"
+  rm -R "${pkgdir}/usr/CMake"
 }

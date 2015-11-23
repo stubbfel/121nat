@@ -1,11 +1,11 @@
 #!/bin/bash
 cd lib
-#sh buildalllibs.sh
+sh buildalllibs.sh
 cd ..
-mkdir -p build/121Nat
-cd build/121Nat
+mkdir -p build/121Natbuild
+cd build/121Natbuild
 cmake ../../
 make
-cp 121Nat ../
+cp src/121Nat ../
 cd ../..
-rm -Rf build/121Nat
+rm -Rf build/121Natbuild
