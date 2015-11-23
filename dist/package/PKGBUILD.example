@@ -44,4 +44,3 @@ package() {
   cp "../../src/config.json" "${pkgdir}/etc/${pkgname}/config-example.json"
   rm -R "${pkgdir}/usr/CMake"
 }
-md5sums=('6d9edd32ba681731501820c5330bd692')
