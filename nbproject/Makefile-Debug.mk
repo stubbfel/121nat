@@ -70,13 +70,15 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lpthread lib/bin/libjsoncpp.a -ltins
+LDLIBSOPTIONS=-lpthread lib/bin/libjsoncpp.a lib/bin/libtins.so
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/121nat
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/121nat: lib/bin/libjsoncpp.a
+
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/121nat: lib/bin/libtins.so
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/121nat: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}

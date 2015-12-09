@@ -17,14 +17,11 @@ namespace otonat {
 
     class PduSender {
     public:
-        typedef std::list<unsigned short int> ChecksumList;
-        
         PduSender(NatMap * map);
         PduSender(const PduSender& orig);
         PduSender& operator=(const PduSender& rhs);
         virtual ~PduSender();
         NatMap * map;
-        ChecksumList checksumList;
         void SendPdusFromQueue();
         
          std::thread * SendPdusFromQueueThread();

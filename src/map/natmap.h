@@ -18,6 +18,9 @@ namespace otonat {
         typedef std::queue<const Tins::PDU *> PduQueue;
         typedef std::pair<Tins::IPv4Address, Tins::IPv4Address> IPv4AddressEntry;
         typedef std::map<Tins::IPv4Address, Tins::IPv4Address> IpAdressMap;
+        typedef unsigned short int Checksum;
+        typedef std::list<Checksum> ChecksumList;
+        
 
         NatMap() {
         }
@@ -38,7 +41,8 @@ namespace otonat {
         Tins::PDU * popPduIncommingPduQueue();
         void pushPduToOutgoingPduQueue(const Tins::PDU * pdu);
         Tins::PDU * popPduOutgoingPduQueue();
-
+        void pushCheckSumToList(Checksum checksum);
+        
         static Tins::PDU * popPduPduQueue(PduQueue & queue, std::mutex & mtx);
         static void pushPduToPduQueue(const Tins::PDU * pdu, PduQueue & queue, std::mutex & mtx);
         
@@ -61,9 +65,12 @@ namespace otonat {
         bool isIpInMyRanges(const Tins::IPv4Address & ipAddr) const;
         static bool isIpInMyRanges(const Tins::IPv4Address & ipAddr, const NatRangeList & rangeList);
         void SendTranslatedArpRequest(const Tins::ARP * arp);
-
+        void popCheckSumToList(Checksum checksum);
+        bool containChecksumList(Checksum checksum);
         std::mutex incommingQueueMutex;
         std::mutex outgoingQueueMutex;
+        std::mutex checksumListMutex;
+        ChecksumList checksumList;
     };
 }
 

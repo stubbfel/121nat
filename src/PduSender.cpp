@@ -15,7 +15,7 @@ namespace otonat {
         this->map = map;
     }
 
-    PduSender::PduSender(const PduSender& orig) : checksumList(orig.checksumList) {
+    PduSender::PduSender(const PduSender& orig) {
         this->map = orig.map;
     }
 
@@ -23,7 +23,6 @@ namespace otonat {
         if (this == &rhs) return *this; // handle self assignment
 
         this->map = rhs.map;
-        this->checksumList = rhs.checksumList;
         return *this;
     }
 
@@ -39,37 +38,30 @@ namespace otonat {
 
             std::cout << "send pdu:" << pdu->size() << std::endl;
 
+            bool isIp = false;
+            NatMap::Checksum ipCheckSum;
             Tins::IPv4Address dstIp = zeroIp;
-            const Tins::ARP * arp = pdu->find_pdu<Tins::ARP>();
-            bool isArp = false;
-            if (arp != nullptr) {
-                dstIp = arp->target_ip_addr();
-                isArp = true;
+            const Tins::IP * ip = pdu->find_pdu<Tins::IP>();
+            if (ip != nullptr) {
+                dstIp = ip->dst_addr();
+                ipCheckSum = ip->checksum();
+                isIp = true;
             }
 
-            if (!isArp) {
-                const Tins::IP * ip = pdu->find_pdu<Tins::IP>();
-                if (ip != nullptr) {
-                    dstIp = ip->dst_addr();
-
-                    unsigned short int checkSum = ip->checksum();
-                    ChecksumList::const_iterator endIter = this->checksumList.end();
-                    ChecksumList::const_iterator beginIter = this->checksumList.begin();
-                    ChecksumList::const_iterator findIter = std::find(beginIter, endIter, checkSum);
-                    if (endIter == findIter) {
-                        this->checksumList.push_back(checkSum);
-                        if (this->checksumList.size() > 10) {
-                            this->checksumList.pop_front();
-                        }
-                    } else {
-                        continue;
-                    }
+            if (!isIp) {
+                const Tins::ARP * arp = pdu->find_pdu<Tins::ARP>();
+                if (arp != nullptr) {
+                    dstIp = arp->target_ip_addr();
                 }
             }
 
             for (NatRange & range : this->map->ranges) {
                 if (range.calcIpRange(true).contains(dstIp)) {
                     std::cout << "send pdu:" << pdu->size() << std::endl;
+                    if (isIp) {
+                        map->pushCheckSumToList(ipCheckSum);
+                    }
+
                     sender.send(*pdu, range.interface);
                     delete pdu;
                     break;
