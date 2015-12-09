@@ -22,14 +22,6 @@ CND_ARTIFACT_PATH_Release=dist/Release/GNU-Linux/121nat
 CND_PACKAGE_DIR_Release=dist/Release/GNU-Linux/package
 CND_PACKAGE_NAME_Release=121nat.tar
 CND_PACKAGE_PATH_Release=dist/Release/GNU-Linux/package/121nat.tar
-# Unitest configuration
-CND_PLATFORM_Unitest=GNU-Linux
-CND_ARTIFACT_DIR_Unitest=dist/Unitest/GNU-Linux
-CND_ARTIFACT_NAME_Unitest=121nat
-CND_ARTIFACT_PATH_Unitest=dist/Unitest/GNU-Linux/121nat
-CND_PACKAGE_DIR_Unitest=dist/Unitest/GNU-Linux/package
-CND_PACKAGE_NAME_Unitest=121nat.tar
-CND_PACKAGE_PATH_Unitest=dist/Unitest/GNU-Linux/package/121nat.tar
 #
 # include compiler specific variables
 #
