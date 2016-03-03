@@ -5,7 +5,7 @@
         }
     }, {
         "vboxnet1": {
-            "rangeIpAddr": "172.27.0.0",
+            "rangeIpAddr": "172.18.0.0",
             "rangeNetmask": "255.255.0.0"
         }
     }]

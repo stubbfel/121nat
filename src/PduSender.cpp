@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   PduSender.cpp
  * Author: dev
- * 
+ *
  * Created on 16. September 2015, 20:31
  */
 
