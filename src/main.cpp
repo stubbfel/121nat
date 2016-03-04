@@ -7,6 +7,9 @@
 #include <json/json.h>
 #include <json/value.h>
 #include <fstream>
+#include "easylogging++.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 template<typename Container>
 void delete_them(Container& c)
@@ -22,7 +25,7 @@ int main(int argc, char** argv)
     if (argc < 2){
         return 0;
     }
-
+    LOG(INFO) << "Hello, world";
     otonat::NatMap::NatRangeList interfaceList;
     std::ifstream config_doc(argv[1], std::ifstream::binary);
     Json::Value root;

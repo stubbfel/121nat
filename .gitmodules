@@ -4,3 +4,6 @@
 [submodule "lib/src/libtins"]
 	path = lib/src/libtins
 	url = https://github.com/mfontanini/libtins.git
+[submodule "lib/src/easyloggingpp"]
+	path = lib/src/easyloggingpp
+	url = git@github.com:easylogging/easyloggingpp.git
