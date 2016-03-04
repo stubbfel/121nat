@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.3.2)
 project (121Nat)
-#link_directories("$ENV{STAGING_DIR}/usr/lib")
+INCLUDE_DIRECTORIES(lib/src/jsoncpp/include)
+INCLUDE_DIRECTORIES(lib/src/libtins/include)
+ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(lib/src/jsoncpp)
 ADD_SUBDIRECTORY(lib/src/libtins)
-ADD_SUBDIRECTORY(src)
-
-
+set_property(TARGET 121Nat PROPERTY CXX_STANDARD 11)
+set_property(TARGET 121Nat PROPERTY CXX_STANDARD_REQUIRED ON)

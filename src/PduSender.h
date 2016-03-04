@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   PduSender.h
  * Author: dev
  *
@@ -8,7 +8,7 @@
 #ifndef PDUSENDER_H
 #define	PDUSENDER_H
 
-#include "map/natmap.h"
+#include "natmap.h"
 #include <tins/tins.h>
 #include <thread>
 #include <list>
@@ -23,7 +23,7 @@ namespace otonat {
         virtual ~PduSender();
         NatMap * map;
         void SendPdusFromQueue();
-        
+
          std::thread * SendPdusFromQueueThread();
     private:
         Tins::PacketSender sender;

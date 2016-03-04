@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   PduSniffer.h
  * Author: dev
  *
@@ -8,7 +8,7 @@
 #ifndef PDUSNIFFER_H
 #define	PDUSNIFFER_H
 
-#include "map/natmap.h"
+#include "natmap.h"
 #include <tins/tins.h>
 #include <thread>
 
@@ -17,7 +17,7 @@ namespace otonat {
     class PduSniffer {
     public:
         typedef std::vector<Tins::Sniffer *> SnifferList;
-        
+
         PduSniffer(NatMap * map);
         PduSniffer(const PduSniffer& orig);
         PduSniffer& operator=(const PduSniffer& rhs);
@@ -32,6 +32,7 @@ namespace otonat {
         Tins::SnifferConfiguration config;
         bool isRunnig;
         bool sniffPdu(const Tins::PDU &pdu);
+        NatMap::NetworkInterfaceId interfaceId;
     };
 
 }

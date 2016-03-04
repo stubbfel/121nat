@@ -37,14 +37,11 @@ namespace otonat {
             }
 
             std::cout << "send pdu:" << pdu->size() << std::endl;
-
             bool isIp = false;
-            NatMap::Checksum ipCheckSum;
             Tins::IPv4Address dstIp = zeroIp;
             const Tins::IP * ip = pdu->find_pdu<Tins::IP>();
             if (ip != nullptr) {
                 dstIp = ip->dst_addr();
-                ipCheckSum = ip->checksum();
                 isIp = true;
             }
 
@@ -58,10 +55,6 @@ namespace otonat {
             for (NatRange & range : this->map->ranges) {
                 if (range.calcIpRange(true).contains(dstIp)) {
                     std::cout << "send pdu:" << pdu->size() << std::endl;
-                    if (isIp) {
-                        map->pushCheckSumToList(ipCheckSum);
-                    }
-
                     sender.send(*pdu, range.interface);
                     delete pdu;
                     break;

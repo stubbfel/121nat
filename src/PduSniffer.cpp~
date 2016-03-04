@@ -41,12 +41,12 @@ namespace otonat {
     }
 
     bool PduSniffer::sniffPdu(const Tins::PDU& pdu) {
-        if (map->isOutgoingPdu(pdu, interfaceId)){
-            std::cout <<"outgoing:" << interfaceId<<std::endl;
+         Tins::EthernetII * ethFrame = pdu.find_pdu<Tins::EthernetII>();
+         if (ethFrame == nullptr){
             return this->isRunnig;
-        }
+         }
 
-        std::cout <<"incomming:" << interfaceId<<std::endl;
+         ethFrame->src_addr();
         std::cout <<"sniff pdu:" << pdu.size() <<std::endl;
         this->map->pushPduToIncommingPduQueue(pdu.clone());
         return this->isRunnig;
@@ -61,8 +61,6 @@ namespace otonat {
     }
 
     void PduSniffer::SniffInterface(const Tins::NetworkInterface & interface) {
-        interfaceId = interface.id();
-        std::cout <<"create:" << interfaceId<<std::endl;
         Start();
         Tins::Sniffer * sniffer = new Tins::Sniffer(interface.name(), config);
         sniffer->sniff_loop(std::bind(&PduSniffer::sniffPdu, this, std::placeholders::_1));

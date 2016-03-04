@@ -9,10 +9,6 @@ namespace otonat {
         ranges.clear();
         transMap.clear();
         reqIpMap.clear();
-
-        this->checksumListMutex.lock();
-        this->checksumList.clear();
-        this->checksumListMutex.unlock();
         this->incommingQueueMutex.lock();
         while (!incommingPduQueue.empty()) {
             incommingPduQueue.pop();
@@ -26,9 +22,13 @@ namespace otonat {
         }
 
         this->outgoingQueueMutex.unlock();
+
+        srcMacAdressNicIdMapMutex.lock();
+        srcMacAdressNicIdMap.clear();
+        srcMacAdressNicIdMapMutex.unlock();
     }
 
-    NatMap::NatMap(const NatMap& other) : ranges(other.ranges), transMap(other.transMap), reqIpMap(other.reqIpMap), incommingPduQueue(other.incommingPduQueue), outgoingPduQueue(other.outgoingPduQueue), checksumList(other.checksumList) {
+    NatMap::NatMap(const NatMap& other) : ranges(other.ranges), transMap(other.transMap), reqIpMap(other.reqIpMap), incommingPduQueue(other.incommingPduQueue), outgoingPduQueue(other.outgoingPduQueue),srcMacAdressNicIdMap(other.srcMacAdressNicIdMap) {
     }
 
     NatMap& NatMap::operator=(const NatMap& rhs) {
@@ -42,9 +42,9 @@ namespace otonat {
         this->outgoingQueueMutex.lock();
         outgoingPduQueue = rhs.outgoingPduQueue;
         this->outgoingQueueMutex.unlock();
-        this->checksumListMutex.lock();
-        this->checksumList = rhs.checksumList;
-        this->checksumListMutex.unlock();
+        this->srcMacAdressNicIdMapMutex.lock();
+        this->srcMacAdressNicIdMap = rhs.srcMacAdressNicIdMap;
+        this->srcMacAdressNicIdMapMutex.unlock();
         return *this;
     }
 
@@ -72,13 +72,6 @@ namespace otonat {
     }
 
     bool NatMap::handleIp(Tins::IP * ip, const Tins::PDU * originPDU) {
-        Checksum checksum = ip->checksum();
-
-        if (containChecksumList(checksum)) {
-            this->popCheckSumToList(checksum);
-            return false;
-        }
-
         if (isForMeOrFromMeIp(ip)) {
             return false;
         }
@@ -241,11 +234,6 @@ namespace otonat {
 
     bool NatMap::handleArpReq(Tins::ARP* arp) {
         const Tins::IPv4Address targetIp = arp->target_ip_addr();
-        IpAdressMap::const_iterator transSenderIpReqIter = this->reqIpMap.find(targetIp);
-        if (transSenderIpReqIter != reqIpMap.end()) {
-            return false;
-        }
-
         IpAdressMap::const_iterator transTargetIpIter = this->transMap.find(targetIp);
         if (transTargetIpIter == transMap.end()) {
             SendTranslatedArpRequest(arp);
@@ -267,11 +255,6 @@ namespace otonat {
 
     bool NatMap::handleArpReply(Tins::ARP* arp) {
         const Tins::IPv4Address targetIp = arp->target_ip_addr();
-        IpAdressMap::const_iterator transSenderIpReqIter = this->reqIpMap.find(targetIp);
-        if (transSenderIpReqIter == reqIpMap.end()) {
-            return false;
-        }
-
         const Tins::IPv4Address transTargetIp = TranslateArpIp(targetIp);
         if (transTargetIp == zeroIp) {
             return false;
@@ -285,7 +268,6 @@ namespace otonat {
 
         arp->target_ip_addr(transTargetIp);
         arp->sender_ip_addr(transSenderIp);
-
         return true;
     }
 
@@ -424,31 +406,29 @@ namespace otonat {
         }
     }
 
-    void NatMap::pushCheckSumToList(Checksum checksum) {
-        checksumListMutex.lock();
-        if (!containChecksumList(checksum)) {
-
-            this->checksumList.push_back(checksum);
-        }
-
-        checksumListMutex.unlock();
-    }
-
-    void NatMap::popCheckSumToList(Checksum checksum) {
-        checksumListMutex.lock();
-        this->checksumList.remove(checksum);
-        checksumListMutex.unlock();
-    }
-
-    bool NatMap::containChecksumList(Checksum checksum) {
-        ChecksumList::const_iterator endIter = this->checksumList.end();
-        ChecksumList::const_iterator beginIter = this->checksumList.begin();
-        ChecksumList::const_iterator findIter = std::find(beginIter, endIter, checksum);
-        return endIter != findIter;
-    }
-
     std::thread * NatMap::translateThread() {
         std::thread * newThread = new std::thread(std::bind(&NatMap::translate, this));
         return newThread;
+    }
+
+    bool NatMap::isOutgoingPdu(const Tins::PDU& pdu, NetworkInterfaceId interfaceId){
+        const Tins::EthernetII * ethFrame = pdu.find_pdu<Tins::EthernetII>();
+        if (ethFrame == nullptr){
+            return false;
+        }
+
+        MacAddress srcMac = ethFrame->src_addr();
+        bool result = false;
+        srcMacAdressNicIdMapMutex.lock();
+        SrcMacAdressNicIdMap::const_iterator endIter = srcMacAdressNicIdMap.end();
+        SrcMacAdressNicIdMap::const_iterator findIter = srcMacAdressNicIdMap.find(srcMac);
+        if(findIter == endIter){
+            srcMacAdressNicIdMap.insert(SrcMacAdressNicIdMapEntry(srcMac, interfaceId));
+        } else if (interfaceId != findIter->second) {
+            result = true;
+        }
+
+        srcMacAdressNicIdMapMutex.unlock();
+        return result;
     }
 }

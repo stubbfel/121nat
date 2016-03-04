@@ -11,16 +11,18 @@
 
 namespace otonat {
     static const Tins::IPv4Address zeroIp;
-    
+
     class NatMap {
     public:
         typedef std::vector<NatRange> NatRangeList;
         typedef std::queue<const Tins::PDU *> PduQueue;
         typedef std::pair<Tins::IPv4Address, Tins::IPv4Address> IPv4AddressEntry;
         typedef std::map<Tins::IPv4Address, Tins::IPv4Address> IpAdressMap;
-        typedef unsigned short int Checksum;
-        typedef std::list<Checksum> ChecksumList;
-        
+        typedef Tins::HWAddress<6> MacAddress;
+        typedef unsigned int NetworkInterfaceId;
+        typedef std::map<MacAddress, NetworkInterfaceId> SrcMacAdressNicIdMap;
+        typedef std::pair<MacAddress, NetworkInterfaceId> SrcMacAdressNicIdMapEntry;
+
 
         NatMap() {
         }
@@ -41,11 +43,11 @@ namespace otonat {
         Tins::PDU * popPduIncommingPduQueue();
         void pushPduToOutgoingPduQueue(const Tins::PDU * pdu);
         Tins::PDU * popPduOutgoingPduQueue();
-        void pushCheckSumToList(Checksum checksum);
-        
+        bool isOutgoingPdu(const Tins::PDU& pdu, NetworkInterfaceId interfaceId);
+
         static Tins::PDU * popPduPduQueue(PduQueue & queue, std::mutex & mtx);
         static void pushPduToPduQueue(const Tins::PDU * pdu, PduQueue & queue, std::mutex & mtx);
-        
+
     protected:
 
     private:
@@ -65,12 +67,10 @@ namespace otonat {
         bool isIpInMyRanges(const Tins::IPv4Address & ipAddr) const;
         static bool isIpInMyRanges(const Tins::IPv4Address & ipAddr, const NatRangeList & rangeList);
         void SendTranslatedArpRequest(const Tins::ARP * arp);
-        void popCheckSumToList(Checksum checksum);
-        bool containChecksumList(Checksum checksum);
         std::mutex incommingQueueMutex;
         std::mutex outgoingQueueMutex;
-        std::mutex checksumListMutex;
-        ChecksumList checksumList;
+        std::mutex srcMacAdressNicIdMapMutex;
+        SrcMacAdressNicIdMap srcMacAdressNicIdMap;
     };
 }
 
