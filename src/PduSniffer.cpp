@@ -51,11 +51,11 @@ bool PduSniffer::sniffPdu(const Tins::PDU& pdu)
 {
     if (map->isOutgoingPdu(pdu, interfaceId))
     {
-        LOG(INFO) << "skip-outgoing: interface = " << interfaceName << "( id = " << interfaceId << ") (size = " << pdu.size() << ")";
+        //LOG(INFO) << "skip-outgoing: interface = " << interfaceName << "( id = " << interfaceId << ") (size = " << pdu.size() << ")";
         return this->isRunnig;
     }
 
-    LOG(INFO) << "sniff-incomming: interface = " << interfaceName << " (id = " << interfaceId << ") (size = " << pdu.size() << ")";
+    //LOG(INFO) << "sniff-incomming: interface = " << interfaceName << " (id = " << interfaceId << ") (size = " << pdu.size() << ")";
     this->map->pushPduToIncommingPduQueue(pdu.clone());
     return this->isRunnig;
 }
@@ -74,7 +74,7 @@ void PduSniffer::SniffInterface(const Tins::NetworkInterface & interface)
 {
     interfaceId = interface.id();
     interfaceName = interface.name();
-    LOG(INFO) << "create-sniffer: interface = " << interfaceName << " (id = " << interfaceId <<  ")";
+    //LOG(INFO) << "create-sniffer: interface = " << interfaceName << " (id = " << interfaceId <<  ")";
     Start();
     Tins::Sniffer * sniffer = new Tins::Sniffer(interfaceName, config);
     sniffer->sniff_loop(std::bind(&PduSniffer::sniffPdu, this, std::placeholders::_1));

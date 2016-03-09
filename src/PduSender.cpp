@@ -57,7 +57,7 @@ namespace otonat {
 
             for (NatRange & range : this->map->ranges) {
                 if (range.calcIpRange(true).contains(dstIp)) {
-                    LOG(INFO) << msgStream.str() << " (size = " << pdu->size() << ")";
+                    //LOG(INFO) << msgStream.str() << " (size = " << pdu->size() << ")";
                     sender.send(*pdu, range.interface);
                     delete pdu;
                     break;

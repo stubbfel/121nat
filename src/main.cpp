@@ -8,6 +8,7 @@
 #include <fstream>
 #include "easylogging++.h"
 
+//#define ELPP_THREAD_SAFE
 INITIALIZE_EASYLOGGINGPP
 
 template<typename Container>
@@ -28,7 +29,7 @@ int main(int argc, char** argv)
     }
 
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format, "[%datetime] [%loc]: %msg");
-    LOG(INFO) << "Hello, world, start 121nat";
+    //LOG(INFO) << "Hello, world, start 121nat";
     otonat::NatMap::NatRangeList interfaceList;
     std::ifstream config_doc(argv[1], std::ifstream::binary);
     Json::Value root;

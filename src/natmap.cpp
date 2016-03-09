@@ -60,7 +60,7 @@ void NatMap::handlePdu(const Tins::PDU * pdu)
 {
     if (pdu == nullptr)
     {
-        LOG(INFO) << "pdu is null";
+        //LOG(INFO) << "pdu is null";
         return;
     }
 
@@ -69,7 +69,7 @@ void NatMap::handlePdu(const Tins::PDU * pdu)
     Tins::ARP * arp = pduCopy->find_pdu<Tins::ARP>();
     if (arp != nullptr)
     {
-        LOG(INFO) << "handle-arp: dst = " << arp->target_ip_addr() << ", src= " << arp->sender_ip_addr() << ", opcode = " << arp->opcode() << " (size = " << pduCopy->size() <<" )";
+        //LOG(INFO) << "handle-arp: dst = " << arp->target_ip_addr() << ", src= " << arp->sender_ip_addr() << ", opcode = " << arp->opcode() << " (size = " << pduCopy->size() <<" )";
         if (handleArp(arp))
         {
             this->pushPduToOutgoingPduQueue(pduCopy);
@@ -80,7 +80,7 @@ void NatMap::handlePdu(const Tins::PDU * pdu)
     Tins::IP * ip = pduCopy->find_pdu<Tins::IP>();
     if (ip != nullptr)
     {
-        LOG(INFO) << "handle-ip: dst = " << ip->dst_addr() << ", src= " << ip->src_addr() << ", checksum = " << ip->checksum() << " (size = " << pduCopy->size() << ")";
+        //LOG(INFO) << "handle-ip: dst = " << ip->dst_addr() << ", src= " << ip->src_addr() << ", checksum = " << ip->checksum() << " (size = " << pduCopy->size() << ")";
         if(handleIp(ip, pduCopy))
         {
             this->pushPduToOutgoingPduQueue(pduCopy);
@@ -88,7 +88,7 @@ void NatMap::handlePdu(const Tins::PDU * pdu)
     }
     else
     {
-        LOG(INFO) << "handle-unkown: (size = " << pduCopy->size() << ")";
+        //LOG(INFO) << "handle-unkown: (size = " << pduCopy->size() << ")";
     }
 }
 
