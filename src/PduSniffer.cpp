@@ -6,71 +6,84 @@
  */
 
 #include "PduSniffer.h"
-#include <iostream>
-namespace otonat {
+#include "easylogging++.h"
 
-    PduSniffer::PduSniffer(NatMap * map) {
-        this->map = map;
-        this->isRunnig = false;
-        config.set_promisc_mode(true);
-        config.set_immediate_mode(true);
+namespace otonat
+{
+
+PduSniffer::PduSniffer(NatMap * map)
+{
+    this->map = map;
+    this->isRunnig = false;
+    config.set_promisc_mode(true);
+    config.set_immediate_mode(true);
+}
+
+PduSniffer::PduSniffer(const PduSniffer& orig) : snifferList(orig.snifferList), config(orig.config)
+{
+    this->map = orig.map;
+    this->isRunnig = orig.isRunnig;
+}
+
+PduSniffer::~PduSniffer()
+{
+    Stop();
+    for (Tins::Sniffer * sniffer : snifferList)
+    {
+        delete sniffer;
     }
 
-    PduSniffer::PduSniffer(const PduSniffer& orig) : snifferList(orig.snifferList), config(orig.config) {
-        this->map = orig.map;
-        this->isRunnig = orig.isRunnig;
-    }
+    this->snifferList.clear();
+}
 
-    PduSniffer::~PduSniffer() {
-        Stop();
-        for (Tins::Sniffer * sniffer : snifferList) {
-            delete sniffer;
-        }
+PduSniffer& PduSniffer::operator=(const PduSniffer& rhs)
+{
+    if (this == &rhs) return *this; // handle self assignment
 
-        this->snifferList.clear();
-    }
+    this->map = rhs.map;
+    this->isRunnig = rhs.isRunnig;
+    this->config = rhs.config;
+    this->snifferList = rhs.snifferList;
+    return *this;
+}
 
-    PduSniffer& PduSniffer::operator=(const PduSniffer& rhs) {
-        if (this == &rhs) return *this; // handle self assignment
-
-        this->map = rhs.map;
-        this->isRunnig = rhs.isRunnig;
-        this->config = rhs.config;
-        this->snifferList = rhs.snifferList;
-        return *this;
-    }
-
-    bool PduSniffer::sniffPdu(const Tins::PDU& pdu) {
-        if (map->isOutgoingPdu(pdu, interfaceId)){
-            std::cout <<"outgoing:" << interfaceId<<std::endl;
-            return this->isRunnig;
-        }
-
-        std::cout <<"incomming:" << interfaceId<<std::endl;
-        std::cout <<"sniff pdu:" << pdu.size() <<std::endl;
-        this->map->pushPduToIncommingPduQueue(pdu.clone());
+bool PduSniffer::sniffPdu(const Tins::PDU& pdu)
+{
+    if (map->isOutgoingPdu(pdu, interfaceId))
+    {
+        LOG(INFO) << "skip-outgoing: interface = " << interfaceName << "( id = " << interfaceId << ") (size = " << pdu.size() << ")";
         return this->isRunnig;
     }
 
-    void PduSniffer::Start() {
-        this->isRunnig = true;
-    }
+    LOG(INFO) << "sniff-incomming: interface = " << interfaceName << " (id = " << interfaceId << ") (size = " << pdu.size() << ")";
+    this->map->pushPduToIncommingPduQueue(pdu.clone());
+    return this->isRunnig;
+}
 
-    void PduSniffer::Stop() {
-        this->isRunnig = false;
-    }
+void PduSniffer::Start()
+{
+    this->isRunnig = true;
+}
 
-    void PduSniffer::SniffInterface(const Tins::NetworkInterface & interface) {
-        interfaceId = interface.id();
-        std::cout <<"create:" << interfaceId<<std::endl;
-        Start();
-        Tins::Sniffer * sniffer = new Tins::Sniffer(interface.name(), config);
-        sniffer->sniff_loop(std::bind(&PduSniffer::sniffPdu, this, std::placeholders::_1));
-        this->snifferList.push_back(sniffer);
-    }
+void PduSniffer::Stop()
+{
+    this->isRunnig = false;
+}
 
-    std::thread *  PduSniffer::SniffInterfaceInNewThread(const Tins::NetworkInterface& interface){
-        std::thread * newThread = new std::thread(std::bind(&PduSniffer::SniffInterface, this,  interface));
-        return newThread;
-    }
+void PduSniffer::SniffInterface(const Tins::NetworkInterface & interface)
+{
+    interfaceId = interface.id();
+    interfaceName = interface.name();
+    LOG(INFO) << "create-sniffer: interface = " << interfaceName << " (id = " << interfaceId <<  ")";
+    Start();
+    Tins::Sniffer * sniffer = new Tins::Sniffer(interfaceName, config);
+    sniffer->sniff_loop(std::bind(&PduSniffer::sniffPdu, this, std::placeholders::_1));
+    this->snifferList.push_back(sniffer);
+}
+
+std::thread *  PduSniffer::SniffInterfaceInNewThread(const Tins::NetworkInterface& interface)
+{
+    std::thread * newThread = new std::thread(std::bind(&PduSniffer::SniffInterface, this,  interface));
+    return newThread;
+}
 }

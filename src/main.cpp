@@ -1,4 +1,3 @@
-#include <iostream>
 #include <tins/tins.h>
 #include <thread>
 #include "natmap.h"
@@ -20,12 +19,16 @@ void delete_them(Container& c)
     c.clear();
 }
 
+
+
 int main(int argc, char** argv)
 {
     if (argc < 2){
         return 0;
     }
-    LOG(INFO) << "Hello, world";
+
+    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format, "[%datetime] [%loc]: %msg");
+    LOG(INFO) << "Hello, world, start 121nat";
     otonat::NatMap::NatRangeList interfaceList;
     std::ifstream config_doc(argv[1], std::ifstream::binary);
     Json::Value root;

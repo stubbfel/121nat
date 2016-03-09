@@ -6,8 +6,7 @@
  */
 
 #include "PduSender.h"
-#include <iostream>
-#include <algorithm>
+#include "easylogging++.h"
 
 namespace otonat {
 
@@ -36,12 +35,13 @@ namespace otonat {
                 continue;
             }
 
-            std::cout << "send pdu:" << pdu->size() << std::endl;
             bool isIp = false;
             Tins::IPv4Address dstIp = zeroIp;
+            std::stringstream msgStream;
             const Tins::IP * ip = pdu->find_pdu<Tins::IP>();
             if (ip != nullptr) {
                 dstIp = ip->dst_addr();
+                msgStream << "sending-ip: dst = " << dstIp << ", src= " << ip->src_addr() << ", checksum = " << ip->checksum();
                 isIp = true;
             }
 
@@ -49,12 +49,15 @@ namespace otonat {
                 const Tins::ARP * arp = pdu->find_pdu<Tins::ARP>();
                 if (arp != nullptr) {
                     dstIp = arp->target_ip_addr();
+                    msgStream << "sending-arp: dst = " << dstIp << ", src= " << arp->sender_ip_addr() << ", opcode = " << arp->opcode();
+                }else{
+                    msgStream << "sending-unkown: ";
                 }
             }
 
             for (NatRange & range : this->map->ranges) {
                 if (range.calcIpRange(true).contains(dstIp)) {
-                    std::cout << "send pdu:" << pdu->size() << std::endl;
+                    LOG(INFO) << msgStream.str() << " (size = " << pdu->size() << ")";
                     sender.send(*pdu, range.interface);
                     delete pdu;
                     break;

@@ -33,6 +33,7 @@ namespace otonat {
         bool isRunnig;
         bool sniffPdu(const Tins::PDU &pdu);
         NatMap::NetworkInterfaceId interfaceId;
+        std::string interfaceName;
     };
 
 }
