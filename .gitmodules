@@ -3,7 +3,7 @@
 	url = https://github.com/open-source-parsers/jsoncpp.git
 [submodule "lib/src/libtins"]
 	path = lib/src/libtins
-	url = git@github.com:stubbfel/libtins
+	url = https://github.com/stubbfel/libtins.git
 [submodule "lib/src/easyloggingpp"]
 	path = lib/src/easyloggingpp
-	url = git@github.com:easylogging/easyloggingpp.git
+	url = https://github.com/easylogging/easyloggingpp.git
